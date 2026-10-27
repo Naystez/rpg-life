@@ -5667,6 +5667,26 @@
             active: true,
           },
           {
+            id: 900001,
+            module: "Santé",
+            name: "Méditation",
+            xp: 50,
+            type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
+            id: 900002,
+            module: "Santé",
+            name: "Maximum 1 café",
+            xp: 50,
+            type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
             id: 4,
             module: "Santé",
             name: "Pornographie",
@@ -5680,18 +5700,38 @@
             id: 5,
             module: "Nutrition",
             name: "Repas équilibré",
-            xp: 50,
+            xp: 75,
             type: "Positif",
-            limit: 3,
+            limit: 2,
             frequency: 7,
             active: true,
           },
           {
             id: 6,
             module: "Nutrition",
-            name: "Hydratation : 1,5 L",
-            xp: 100,
+            name: "Hydratation : 1,5 L / jour",
+            xp: 50,
             type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
+            id: 900003,
+            module: "Nutrition",
+            name: "Shaker Protéines",
+            xp: 50,
+            type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
+            id: 900004,
+            module: "Nutrition",
+            name: "Excès alimentaire",
+            xp: -100,
+            type: "Négatif",
             limit: 1,
             frequency: 7,
             active: true,
@@ -5700,7 +5740,7 @@
             id: 10,
             module: "Sport",
             name: "Séance de sport",
-            xp: 150,
+            xp: 100,
             type: "Positif",
             limit: 1,
             frequency: 7,
@@ -5717,6 +5757,16 @@
             active: true,
           },
           {
+            id: 900005,
+            module: "Sport",
+            name: "Souplesse",
+            xp: 50,
+            type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
             id: 13,
             module: "Sport",
             name: "Moins de 4 000 pas",
@@ -5727,10 +5777,10 @@
             active: true,
           },
           {
-            id: 15,
+            id: 900006,
             module: "Discipline",
-            name: "Mission du jour",
-            xp: 80,
+            name: "Apprentissage (Echec / Piano / Guitare)",
+            xp: 100,
             type: "Positif",
             limit: 1,
             frequency: 7,
@@ -5740,7 +5790,7 @@
             id: 14,
             module: "Discipline",
             name: "Lecture",
-            xp: 60,
+            xp: 50,
             type: "Positif",
             limit: 1,
             frequency: 7,
@@ -5750,7 +5800,17 @@
             id: 16,
             module: "Discipline",
             name: "Soin personnel",
-            xp: 60,
+            xp: 50,
+            type: "Positif",
+            limit: 1,
+            frequency: 7,
+            active: true,
+          },
+          {
+            id: 15,
+            module: "Discipline",
+            name: "Mission du jour",
+            xp: 50,
             type: "Positif",
             limit: 1,
             frequency: 7,
@@ -5759,7 +5819,7 @@
           {
             id: 19,
             module: "Discipline",
-            name: "Temps d’écran excessif",
+            name: "Temps d’écran mobile excessif (>3h)",
             xp: -100,
             type: "Négatif",
             limit: 1,
@@ -8384,6 +8444,158 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
       render();
       // V4.8 — Éditeur de quêtes : configuration séparée des validations historiques.
       const QUEST_CONFIG_KEY = "rpg-life-quests-custom-v1";
+
+      // One-time adoption of the new default profile. Keep arbitrary personal edits intact.
+      (() => {
+        const revisionKey = "rpg-life-quest-defaults-photo17-v1",
+          backupKey = "rpg-life-quests-before-photo17-v1";
+        try {
+          if (appStorage.getItem(revisionKey) === "1") return;
+          const raw = localStorage.getItem(QUEST_CONFIG_KEY),
+            checked = appStorage.getItem(QUEST_CONFIG_KEY);
+          if (raw !== null && checked === null) return; // An unreadable original remains protected.
+          const current = raw === null ? null : JSON.parse(checked),
+            legacy = [
+              {
+                id: 1,
+                module: "Santé",
+                name: "Sommeil : 8 h",
+                xp: 150,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 4,
+                module: "Santé",
+                name: "Pornographie",
+                xp: -100,
+                type: "Négatif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 5,
+                module: "Nutrition",
+                name: "Repas équilibré",
+                xp: 50,
+                type: "Positif",
+                limit: 3,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 6,
+                module: "Nutrition",
+                name: "Hydratation : 1,5 L",
+                xp: 100,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 10,
+                module: "Sport",
+                name: "Séance de sport",
+                xp: 150,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 11,
+                module: "Sport",
+                name: "6 000 pas",
+                xp: 100,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 13,
+                module: "Sport",
+                name: "Moins de 4 000 pas",
+                xp: -100,
+                type: "Négatif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 15,
+                module: "Discipline",
+                name: "Mission du jour",
+                xp: 80,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 14,
+                module: "Discipline",
+                name: "Lecture",
+                xp: 60,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 16,
+                module: "Discipline",
+                name: "Soin personnel",
+                xp: 60,
+                type: "Positif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+              {
+                id: 19,
+                module: "Discipline",
+                name: "Temps d’écran excessif",
+                xp: -100,
+                type: "Négatif",
+                limit: 1,
+                frequency: 7,
+                active: true,
+              },
+            ];
+          const equivalent = (a, b) =>
+            Array.isArray(a) &&
+            a.length === b.length &&
+            b.every((q) =>
+              a.some(
+                (x) =>
+                  Number(x.id) === q.id &&
+                  x.module === q.module &&
+                  x.name === q.name &&
+                  Number(x.xp) === q.xp &&
+                  Number(x.limit || 1) === q.limit &&
+                  Number(x.frequency || 7) === q.frequency &&
+                  x.active !== false,
+              ),
+            );
+          const writes = { [revisionKey]: "1" };
+          if (current === null || equivalent(current, legacy)) {
+            if (raw !== null && localStorage.getItem(backupKey) === null)
+              writes[backupKey] = raw;
+            writes[QUEST_CONFIG_KEY] = JSON.stringify(DATA.quests);
+          }
+          appStorage.commit(writes);
+        } catch (error) {
+          console.warn(
+            "Adoption des quêtes par défaut : configuration existante conservée.",
+            error,
+          );
+        }
+      })();
       const QUEST_DEFAULTS = JSON.parse(JSON.stringify(DATA.quests));
       let questEditorOpen = false;
       let questConfig;
