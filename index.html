@@ -4542,6 +4542,43 @@
               fail("Entraînements invalides");
           }
           if (
+            key === "rpg-life-inbox-v1" &&
+            (!object(v) ||
+              v.version !== 1 ||
+              !Array.isArray(v.items) ||
+              v.items.length > 1000 ||
+              !v.items.every(
+                (x) =>
+                  object(x) &&
+                  typeof x.id === "string" &&
+                  x.id.length <= 150 &&
+                  typeof x.title === "string" &&
+                  typeof x.body === "string" &&
+                  typeof x.read === "boolean" &&
+                  typeof x.at === "string" &&
+                  Number.isFinite(Date.parse(x.at)) &&
+                  ["rpg", "training", "dungeons", "titles"].includes(x.route) &&
+                  [
+                    "career",
+                    "title",
+                    "quest",
+                    "dungeon",
+                    "committee",
+                    "training",
+                    "arc",
+                    "gear",
+                    "equipment",
+                    "companion",
+                    "achievement",
+                    "region",
+                  ].includes(x.kind) &&
+                  typeof x.target === "string" &&
+                  /^[a-zA-Z0-9_-]*$/.test(x.target),
+              ) ||
+              new Set(v.items.map((x) => x.id)).size !== v.items.length)
+          )
+            fail("Messagerie invalide");
+          if (
             key === "rpg-life-quests-custom-v1" &&
             !(
               Array.isArray(v) &&
@@ -5590,6 +5627,123 @@
           box-shadow:
             inset 0 1px #a1efc02c,
             0 0 16px #5acf9025;
+        }
+      }</style
+    ><style id="rpg-inbox-style">
+      .rpg-inbox-button {
+        min-width: 48px;
+        min-height: 44px;
+        border: 1px solid #0bbbef;
+        border-radius: 12px;
+        background: #133c57;
+        color: #e0faff;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      #rpgInbox[hidden],
+      #rpgInboxNotice[hidden] {
+        display: none;
+      }
+      #rpgInbox {
+        position: fixed;
+        inset: 0;
+        z-index: 16000;
+        background: #020a16ce;
+        display: grid;
+        place-items: center;
+        padding: max(16px, env(safe-area-inset-top)) 14px
+          max(16px, env(safe-area-inset-bottom));
+      }
+      .rpg-inbox-dialog {
+        width: min(620px, 100%);
+        max-height: 88dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: #0c2438;
+        color: #e4f4ff;
+        border: 1px solid #0bbbef;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 20px 70px #0008;
+      }
+      .rpg-inbox-dialog header {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: start;
+      }
+      .rpg-inbox-dialog h2 {
+        margin: 6px 0;
+      }
+      .rpg-inbox-dialog p {
+        line-height: 1.5;
+      }
+      .rpg-inbox-dialog small {
+        color: #7cc3a2;
+        font-size: 10px;
+        letter-spacing: 1px;
+      }
+      .rpg-inbox-dialog button {
+        min-height: 44px;
+        padding: 8px 12px;
+        border: 1px solid #4386ad;
+        border-radius: 9px;
+        background: #174463;
+        color: white;
+        font: inherit;
+        cursor: pointer;
+      }
+      .inbox-item {
+        margin-top: 14px;
+        padding: 14px;
+        border: 1px solid #2c506b;
+        border-radius: 12px;
+        background: #102d44;
+      }
+      .inbox-item.unread {
+        border-left: 4px solid #0bbbef;
+        background: #143c55;
+      }
+      .inbox-item h3 {
+        margin: 8px 0;
+        font-size: 16px;
+      }
+      #rpgInboxNotice {
+        position: fixed;
+        z-index: 8000;
+        bottom: 160px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
+        max-width: calc(100vw - 28px);
+        background: #123c51;
+        color: #e9fff8;
+        border: 1px solid #7cc3a2;
+        padding: 12px 16px;
+        border-radius: 12px;
+        pointer-events: none;
+      }
+      @media (max-width: 850px) {
+        .rpg-inbox-button {
+          order: 2;
+        }
+      }
+
+      @media (max-width: 850px) {
+        .topbar h1 {
+          flex-basis: 80px !important;
+        }
+        .rpg-inbox-button {
+          flex: 0 0 auto;
+          min-width: 44px;
+          font-size: 13px;
+        }
+        .mobile-universe-trigger {
+          min-width: 0 !important;
+        }
+        .rpg-inbox-dialog {
+          max-height: 85dvh;
         }
       }
     </style></head
@@ -7277,10 +7431,9 @@
             xp: q.xp,
           });
           const feedbackRect = b.getBoundingClientRect();
-          if (t === today()) animateXP(b, q.xp);
+          animateXP(b, q.xp);
           save();
-          if (t === today()) window.rpgFeedback?.quest(q, feedbackRect);
-          if (t !== today()) return;
+          window.rpgFeedback?.quest(q, feedbackRect);
           const afterG = level(xpOf(), "global")[0],
             afterM = level(xpOf(q.module), "module")[0],
             afterTitle = title(q.module, afterM),
@@ -9188,6 +9341,40 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           getState: () => state,
           refresh: () => renderRpg(),
           combat: () => combatProfile(),
+          unlocks: () => [
+            ...regions
+              .filter((x) => lvl() >= x[1])
+              .map((x) => ({
+                id: "region:" + x[1],
+                title: "Nouvelle région accessible",
+                body: x[0],
+                kind: "region",
+              })),
+            ...items
+              .filter(owned)
+              .map((x) => ({
+                id: "equipment:" + x.id,
+                title: "Équipement débloqué",
+                body: x.name,
+                kind: "equipment",
+              })),
+            ...bosses
+              .filter((x) => dungeonClaims[x.id])
+              .map((x) => ({
+                id: "boss:" + x.id,
+                title: "Combat de boss disponible",
+                body: x.name,
+                kind: "committee",
+              })),
+            ...achievements()
+              .filter((x) => x[2])
+              .map((x) => ({
+                id: "achievement:" + x[0],
+                title: "Succès débloqué",
+                body: x[0] + " · " + x[1],
+                kind: "achievement",
+              })),
+          ],
         };
         function persist() {
           try {
@@ -9915,6 +10102,10 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           section.insertBefore(el, document.getElementById("rpgRoot"));
         }
         window.rpgLifeSystem = {
+          unlockedCompanions: () =>
+            companions
+              .filter((c) => victory(c.boss))
+              .map((c) => ({ id: c.id, name: c.name })),
           companionMarkup,
           secretMarkup,
           visual: (l) => ({
@@ -10985,6 +11176,360 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }),
         };
         ui();
+      })();</script
+    ><script id="rpg-inbox-script">
+      (() => {
+        "use strict";
+        const KEY_INBOX = "rpg-life-inbox-v1";
+        let state = { version: 1, items: [] },
+          protectedState = false,
+          lastFocus,
+          announcementTimer,
+          scanTimer;
+        try {
+          const raw = appStorage.getItem(KEY_INBOX);
+          protectedState =
+            raw === null && localStorage.getItem(KEY_INBOX) !== null;
+          if (raw) state = JSON.parse(raw);
+        } catch {
+          protectedState = true;
+        }
+        const safe = (v) =>
+          String(v).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "rpg-inbox-button";
+        document.querySelector(".topbar").append(button);
+        const layer = document.createElement("div");
+        layer.id = "rpgInbox";
+        layer.hidden = true;
+        layer.innerHTML =
+          '<div class="rpg-inbox-dialog" role="dialog" aria-modal="true" aria-labelledby="inboxTitle" tabindex="-1"><header><div><small>RPG LIFE · LE FIL DE TON AVENTURE</small><h2 id="inboxTitle">Mes nouveautés</h2></div><button type="button" data-inbox-close aria-label="Fermer la messagerie">✕</button></header><p>Retrouve tes nouveaux rangs, titres, missions, donjons et récompenses des deux univers.</p><button type="button" data-inbox-read-all>Tout marquer comme lu</button><div id="rpgInboxList"></div><p id="rpgInboxError" role="status"></p></div>';
+        document.body.append(layer);
+        const notice = document.createElement("div");
+        notice.id = "rpgInboxNotice";
+        notice.hidden = true;
+        notice.setAttribute("role", "status");
+        document.body.append(notice);
+        function persist(next) {
+          if (protectedState) return false;
+          try {
+            appStorage.commit({ [KEY_INBOX]: JSON.stringify(next) });
+            state = next;
+            return true;
+          } catch {
+            document.getElementById("rpgInboxError").textContent =
+              "Impossible d’enregistrer la messagerie. Tes nouveautés restent non lues.";
+            return false;
+          }
+        }
+        function catalog() {
+          const items = [],
+            add = (id, title, body, route, kind, target = "") =>
+              items.push({ id, title, body, route, kind, target });
+          const l = level(xpOf(), "global")[0];
+          for (const rank of ranksForAvatar())
+            if (rank.level > 0 && l >= rank.level)
+              add(
+                "rank:" + rank.level,
+                "Nouveau rang de chasseur",
+                rank.name + " · niveau " + rank.level,
+                "rpg",
+                "career",
+              );
+          for (const module of mods) {
+            const ml = level(xpOf(module), "module")[0];
+            for (const row of DATA.titles[module])
+              if (row[0] > 0 && ml >= row[0])
+                add(
+                  "title:" + module + ":" + row[0],
+                  "Nouveau titre · " + module,
+                  row[1],
+                  "titles",
+                  "title",
+                );
+          }
+          for (const q of SURPRISES)
+            if (surpriseUnlocked(q)) {
+              add(
+                "quest:" + q.id,
+                "Nouvelle quête secrète",
+                q.name,
+                "dungeons",
+                "quest",
+                q.id,
+              );
+              if (!claimedSurprises[q.id] && surpriseAchieved(q))
+                add(
+                  "claim:" + q.id,
+                  "Récompense à récupérer",
+                  q.name + " : tu peux récupérer ta récompense.",
+                  "dungeons",
+                  "quest",
+                  q.id,
+                );
+            }
+          for (const q of DUNGEONS)
+            if (l >= q.lv) {
+              add(
+                "dungeon:" + q.id,
+                "Donjon débloqué",
+                q.name + " · niveau " + q.lv,
+                "dungeons",
+                "dungeon",
+                q.id,
+              );
+              if (!dungeonClaims[q.id] && dungeonDetails(q).ready)
+                add(
+                  "ready:" + q.id,
+                  "Donjon prêt à terminer",
+                  q.name,
+                  "dungeons",
+                  "dungeon",
+                  q.id,
+                );
+            }
+          const adventure = window.rpgLifeAdventure?.unlocks();
+          for (const x of adventure || [])
+            add(x.id, x.title, x.body, "rpg", x.kind);
+          for (const x of window.rpgLifeSystem?.unlockedCompanions() || [])
+            add(
+              "companion:" + x.id,
+              "Nouveau compagnon",
+              x.name + " rejoint tes compagnons disponibles.",
+              "rpg",
+              "companion",
+            );
+          const sl = sportLevel(),
+            count = sport.sessions.length;
+          if (sl.lv > 1)
+            add(
+              "sport:" + sl.lv,
+              "Nouveau niveau Shinobi",
+              "Niveau " + sl.lv + " · " + sl.rank,
+              "training",
+              "training",
+            );
+          for (const arc of SHINOBI_ARCS)
+            if (sl.lv >= arc.level)
+              add(
+                "arc:" + arc.level,
+                "Chapitre Shinobi disponible",
+                arc.name + " · " + arc.mentor,
+                "training",
+                "arc",
+              );
+          for (const [icon, name, n] of SPORT_GEAR)
+            if (count >= n)
+              add(
+                "sport-gear:" + n,
+                "Récompense Shinobi débloquée",
+                name + " · " + n + " séance(s)",
+                "training",
+                "gear",
+              );
+          return items;
+        }
+        function render() {
+          const unread = state.items.filter((x) => !x.read).length;
+          button.textContent = "✉ " + (unread ? Math.min(99, unread) : "");
+          button.setAttribute(
+            "aria-label",
+            "Nouveautés : " + unread + " non lue" + (unread > 1 ? "s" : ""),
+          );
+          button.setAttribute("aria-haspopup", "dialog");
+          document.getElementById("rpgInboxList").innerHTML =
+            [...state.items]
+              .reverse()
+              .map(
+                (x) =>
+                  '<article class="inbox-item ' +
+                  (x.read ? "" : "unread") +
+                  '"><small>' +
+                  (x.read ? "LU" : "NOUVEAU") +
+                  " · " +
+                  safe(new Date(x.at).toLocaleDateString("fr-FR")) +
+                  "</small><h3>" +
+                  safe(x.title) +
+                  "</h3><p>" +
+                  safe(x.body) +
+                  '</p><button type="button" data-inbox-open="' +
+                  safe(x.id) +
+                  '">Voir →</button></article>',
+              )
+              .join("") ||
+            "<p>Aucune nouveauté pour le moment. Tes prochains déblocages apparaîtront ici.</p>";
+          if (protectedState)
+            document.getElementById("rpgInboxError").textContent =
+              "La messagerie enregistrée est illisible. Les données originales sont conservées ; exporte une sauvegarde avant réparation.";
+        }
+        function scan(announce = true) {
+          if (protectedState) return;
+          const known = new Set(state.items.map((x) => x.id));
+          const added = catalog()
+            .filter((x) => !known.has(x.id))
+            .map((x) => ({ ...x, read: false, at: new Date().toISOString() }));
+          if (
+            added.length &&
+            persist({ ...state, items: [...state.items, ...added] })
+          ) {
+            if (announce) {
+              notice.textContent =
+                "✉ " +
+                added.length +
+                " nouveauté" +
+                (added.length > 1 ? "s" : "") +
+                " à découvrir dans ta messagerie";
+              notice.hidden = false;
+              clearTimeout(announcementTimer);
+              announcementTimer = setTimeout(
+                () => (notice.hidden = true),
+                4000,
+              );
+            }
+          }
+          render();
+        }
+        function open() {
+          lastFocus = document.activeElement;
+          notice.hidden = true;
+          render();
+          layer.hidden = false;
+          layer.querySelector("[data-inbox-close]").focus();
+        }
+        function close() {
+          layer.hidden = true;
+          lastFocus?.focus({ preventScroll: true });
+        }
+        button.addEventListener("click", open);
+        layer.addEventListener("click", (e) => {
+          if (e.target === layer || e.target.closest("[data-inbox-close]"))
+            return close();
+          if (e.target.closest("[data-inbox-read-all]")) {
+            persist({
+              ...state,
+              items: state.items.map((x) => ({ ...x, read: true })),
+            });
+            render();
+            return;
+          }
+          const action = e.target.closest("[data-inbox-open]");
+          if (!action) return;
+          const item = state.items.find(
+            (x) => x.id === action.dataset.inboxOpen,
+          );
+          if (!item) return;
+          if (
+            !catalog().some((x) => x.id === item.id) &&
+            ![
+              "career",
+              "title",
+              "training",
+              "arc",
+              "gear",
+              "equipment",
+              "companion",
+              "achievement",
+              "region",
+              "committee",
+            ].includes(item.kind)
+          ) {
+            document.getElementById("rpgInboxError").textContent =
+              "Ce contenu n’est plus accessible avec ta progression actuelle.";
+            return;
+          }
+          persist({
+            ...state,
+            items: state.items.map((x) =>
+              x.id === item.id ? { ...x, read: true } : x,
+            ),
+          });
+          close();
+          if (item.route === "training") {
+            if (!document.body.classList.contains("shinobi-mode")) {
+              document.querySelector('.tab[data-tab="training"]').click();
+              if (!document.getElementById("shinobiPortal").hidden)
+                document.getElementById("shinobiPortalEnter").click();
+            }
+            sportPage = item.kind === "arc" ? "missions" : "progress";
+            sportRender();
+          } else {
+            if (document.body.classList.contains("shinobi-mode"))
+              document.querySelector("[data-shinobi-return]").click();
+            window.rpgLifeNavigation.go(item.route);
+            if (item.kind === "companion")
+              document
+                .querySelectorAll("[data-profile-companions]")
+                .forEach((d) => {
+                  for (let p = d; p; p = p.parentElement)
+                    if (p.matches("details")) p.open = true;
+                });
+            else if (item.kind === "committee") {
+              document
+                .querySelectorAll("#rpgBosses details")
+                .forEach((d) => (d.open = true));
+              document
+                .getElementById("rpgBosses")
+                .scrollIntoView({ block: "start" });
+            } else if (
+              ["region", "achievement", "equipment"].includes(item.kind)
+            )
+              document
+                .querySelectorAll("#rpgRoot details")
+                .forEach((d) => (d.open = true));
+          }
+          render();
+        });
+        layer.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            close();
+          }
+          if (e.key === "Tab") {
+            const nodes = [
+                ...layer.querySelectorAll("button:not(:disabled)"),
+              ].filter((x) => x.offsetParent !== null),
+              first = nodes[0],
+              last = nodes.at(-1);
+            if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        });
+        const schedule = () => {
+          clearTimeout(scanTimer);
+          scanTimer = setTimeout(() => scan(), 50);
+        };
+        document.addEventListener("rpg-life:changed", schedule);
+        document.addEventListener("click", (e) => {
+          if (e.target.closest("button")) schedule();
+        });
+        const previous = sportRender;
+        sportRender = function (...args) {
+          const result = previous(...args);
+          schedule();
+          return result;
+        };
+        window.rpgInbox = {
+          scan,
+          open,
+          getState: () => JSON.parse(JSON.stringify(state)),
+        };
+        scan(false);
       })();
     </script></body
   ></html
