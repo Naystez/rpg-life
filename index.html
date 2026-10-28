@@ -15288,6 +15288,13 @@ document.addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.id)return
 document.addEventListener('pointercancel',clear);window.addEventListener('blur',clear);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();clear();return;}const handle=e.target.closest('[data-exercise-drag]');if(!handle||!['ArrowUp','ArrowDown'].includes(e.key)||!sport.active)return;e.preventDefault();const from=Number(handle.dataset.exerciseDrag);move(from,from+(e.key==='ArrowUp'?-1:1),sport.active.id);});
 const previous=sportRender;sportRender=function(...args){clear();const result=previous(...args);decorate();return result;};decorate();
 })();
-</script></body
+</script><style id="monarch-home-avatar-size">
+#dashboard .hunter{min-height:230px}
+#dashboard .hunter .avatar-art{width:76%;max-width:220px;height:220px}
+#dashboard .hunter .avatar-art svg{height:100%;max-height:220px}
+#dashboard .hunter::before{width:180px;height:180px}
+#dashboard .hunter::after{width:135px}
+@media(max-width:850px){#dashboard .hunter{min-height:175px!important;max-height:175px!important;height:175px}#dashboard .hunter .avatar-art{width:170px;max-width:76%;height:160px}#dashboard .hunter .avatar-art svg{max-height:160px}#dashboard .hunter::before{width:140px;height:140px}#dashboard .hunter::after{width:110px;bottom:5px}}
+</style></body
   ></html
 >
