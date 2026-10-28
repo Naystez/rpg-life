@@ -6680,7 +6680,7 @@
             >← Retour à l’aventure</button
           ></nav
         ><div class="aside-bottom"
-          >« Chaque habitude forge le chasseur que tu deviendras. »</div
+          ><span class="monarch-motto">« Chaque habitude forge le chasseur que tu deviendras. »</span><span class="shinobi-motto" title="Madara · Naruto Shippuden, épisode 344 · traduction libre">« Dans ce monde, là où il y a de la lumière, il y a aussi des ombres. »<br>— Madara</span></div
         ></aside
       ><div class="content"
         ><div class="topbar"
@@ -9263,16 +9263,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           sportPage === "home" &&
           sportSportChoice === "Musculation"
         ) {
-          if (
-            sportOpenExercise === null ||
-            !sport.active.exercises[sportOpenExercise]
-          )
-            sportOpenExercise = Math.max(
-              0,
-              sport.active.exercises.findIndex((ex) =>
-                ex.sets.some((set) => !set.done),
-              ),
-            );
+          if(sportOpenExercise !== null && !sport.active.exercises[sportOpenExercise]) sportOpenExercise=null;
           const a = sport.active;
           html += `<div class="sport-card training-active-session"><h2 class="sport-title">Mes exercices</h2>${a.exercises
             .map(
@@ -9285,11 +9276,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                     .find((x) => x.name === ex.name)
                     ?.sets.map((x) => x.kg + " kg × " + x.reps)
                     .join(" · ") || "Exercice ponctuel",
-                )}</p><div class="sport-actions"><button data-sport="renameActive" data-index="${i}">Remplacer</button><button data-sport="addSet" data-index="${i}">+ Série</button><button data-sport="completeExercise" data-index="${i}">✓ Tout valider</button><button data-sport="uncheckExercise" data-index="${i}">↶ Tout décocher</button><button data-sport="removeActiveEx" data-index="${i}">Retirer</button></div>${ex.sets.map((set, j) => `<div class="sport-row"><label class="sport-field">Série ${j + 1}<span> ${set.done ? "✓ Terminée" : "À faire"}</span></label><label class="sport-field">kg<input type="number" min="0" step="0.5" data-sport-field="kg" data-ex="${i}" data-set="${j}" value="${sportEsc(set.kg)}"></label><label class="sport-field">Rép.<input type="number" min="0" step="1" data-sport-field="reps" data-ex="${i}" data-set="${j}" value="${sportEsc(set.reps)}"></label><div><input class="sport-check" aria-label="${sportEsc(ex.name)} · Série ${j + 1} terminée" type="checkbox" data-sport-field="done" data-ex="${i}" data-set="${j}" ${set.done ? "checked" : ""}><button data-sport="removeSet" data-index="${i}" data-set="${j}" title="Supprimer la série">×</button></div></div>`).join("")}</details>`,
+                )}</p><div class="sport-actions"><button data-sport="addSet" data-index="${i}">+ Série</button><button data-sport="removeActiveEx" data-index="${i}">Retirer</button></div>${ex.sets.map((set, j) => `<div class="sport-row"><label class="sport-field">Série ${j + 1}<span> ${set.done ? "✓ Terminée" : "À faire"}</span></label><label class="sport-field">kg<input type="number" min="0" step="0.5" data-sport-field="kg" data-ex="${i}" data-set="${j}" value="${sportEsc(set.kg)}"></label><label class="sport-field">Rép.<input type="number" min="0" step="1" data-sport-field="reps" data-ex="${i}" data-set="${j}" value="${sportEsc(set.reps)}"></label><div><input class="sport-check" aria-label="${sportEsc(ex.name)} · Série ${j + 1} terminée" type="checkbox" data-sport-field="done" data-ex="${i}" data-set="${j}" ${set.done ? "checked" : ""}><button data-sport="removeSet" data-index="${i}" data-set="${j}" title="Supprimer la série">×</button></div></div>`).join("")}</details>`,
             )
             .join(
               "",
-            )}<div class="sport-actions"><button data-sport="addActiveEx">+ Ajouter un exercice</button>${a.programId === SPORT_LOCKED_ID ? '<button data-sport="restoreDefault">↺ Restaurer les 9 exercices</button>' : ""}${a.programId === SPORT_LOCKED_ID ? "" : '<button data-sport="saveTemplate">⭐ Enregistrer comme programme</button>'}<button class="primary" data-sport="finish">🏆 Terminer la séance</button><button data-sport="cancel">Annuler</button></div></div>`;
+            )}<div class="sport-actions training-session-actions"><button data-sport="addActiveEx">+ Ajouter un exercice</button><button data-sport="cancel">Annuler la séance</button><button class="primary" data-sport="finish">🏆 Terminer la séance</button></div></div>`;
           html += sportManagement();
           root.innerHTML = html;
           window.rpgLifeErgonomics?.sport(root);
@@ -11815,18 +11806,12 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             const finish = root.querySelector('[data-sport="finish"]');
             if (finish) {
               const group = finish.parentElement;
-              group.insertAdjacentHTML(
-                "afterbegin",
-                '<p class="sport-muted" style="flex-basis:100%">Les changements de cette séance ne modifient pas ton programme de référence.</p>',
-              );
               group.before(finish);
               finish.classList.add("easy-finish");
-              if (group.children.length)
-                fold(
-                  [group],
-                  "⚙️ Options de la séance",
-                  "session:" + sport.active.id,
-                );
+              const firstExercise=root.querySelector("details.sport-ex");
+              const heading=root.querySelector(".training-active-session h2");
+              if(firstExercise)firstExercise.before(group);
+              else if(heading)heading.after(group);
             }
           }
         }
@@ -14743,6 +14728,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         renderFeast();
       })();</script
     ><style id="konoha-refactor-style">
+#trainingRoot .training-session-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px}
+#trainingRoot .training-session-actions button{min-height:46px;flex:1;padding:10px;font-size:13px}
+
 #trainingRoot .training-hero.village-compact{min-height:0!important;padding:8px 0 14px!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important}
 #trainingRoot .village-compact h2{font-size:25px!important;margin:0!important;line-height:1.2!important}
 #trainingRoot .village-compact::before,#trainingRoot .village-compact::after,#trainingRoot .village-compact .konoha-clan-badge,#trainingRoot .village-compact .clan-technique-badge{display:none!important}
@@ -15272,6 +15260,34 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         });
         render();
       })();
-    </script></body
+    </script><style id="exercise-order-style">.shinobi-motto{display:none}body.shinobi-mode .shinobi-motto{display:inline}body.shinobi-mode .monarch-motto{display:none}#trainingRoot .sport-ex>summary{position:relative;padding-left:55px!important}
+#trainingRoot .exercise-drag-handle{position:absolute;left:5px;top:50%;transform:translateY(-50%);width:42px;height:46px;min-width:42px;padding:10px!important;border:1px solid #47627b;border-radius:9px;background:#102738;color:#a4d9e6;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.exercise-drag-handle svg{width:20px;height:24px;pointer-events:none}.exercise-drag-handle:active{cursor:grabbing}.exercise-is-dragging{opacity:.5}.exercise-drop-before{box-shadow:0 -4px #7ef0c4!important}.exercise-drop-after{box-shadow:0 4px #7ef0c4!important}.exercise-drag-ghost{position:fixed;left:0;top:0;max-width:210px;padding:10px 14px;border-radius:10px;background:#174536;border:1px solid #8ce4c3;color:#fff;font-size:13px;pointer-events:none;z-index:10000;box-shadow:0 6px 22px #0009}.exercise-order-status{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+</style><script id="exercise-order-script">(()=>{
+'use strict';
+let drag=null,frame=0;
+const status=document.createElement('div');status.className='exercise-order-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');document.body.append(status);
+function decorate(){document.querySelectorAll('#trainingRoot details.sport-ex>summary').forEach((summary,i)=>{if(summary.querySelector('[data-exercise-drag]'))return;const button=document.createElement('button');button.type='button';button.dataset.exerciseDrag=String(i);button.className='exercise-drag-handle';button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="8" cy="5" r="2"/><circle cx="16" cy="5" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="19" r="2"/><circle cx="16" cy="19" r="2"/></svg>';button.setAttribute('aria-label','Déplacer '+sport.active.exercises[i].name);button.title='Glisser pour déplacer · clavier : flèches haut / bas';summary.prepend(button);});}
+function move(from,to,sessionId){
+ if(!sport.active||sport.active.id!==sessionId||from===to||from<0||to<0||to>=sport.active.exercises.length)return;
+ const indexes=sport.active.exercises.map((_,i)=>i);indexes.splice(to,0,indexes.splice(from,1)[0]);
+ const next={...sport,active:{...sport.active,exercises:indexes.map(i=>sport.active.exercises[i])}};
+ const opened=[...document.querySelectorAll('#trainingRoot details.sport-ex')].findIndex(e=>e.open);
+ try{appStorage.commit({[SPORT_KEY]:JSON.stringify(next)});}catch{status.textContent='Déplacement non enregistré : stockage indisponible.';return;}
+ sport=next;sportOpenExercise=opened<0?null:indexes.indexOf(opened);sportRender();
+ status.textContent=next.active.exercises[to].name+' déplacé en position '+(to+1)+' sur '+indexes.length+'.';
+ document.querySelector('[data-exercise-drag="'+to+'"]')?.focus({preventScroll:true});
+}
+function clear(){cancelAnimationFrame(frame);if(drag){drag.ghost?.remove();drag.card.classList.remove('exercise-is-dragging');try{drag.handle.releasePointerCapture(drag.id);}catch{}}document.querySelectorAll('.exercise-drop-before,.exercise-drop-after').forEach(e=>e.classList.remove('exercise-drop-before','exercise-drop-after'));drag=null;}
+function target(){if(!drag?.started)return;document.querySelectorAll('.exercise-drop-before,.exercise-drop-after').forEach(e=>e.classList.remove('exercise-drop-before','exercise-drop-after'));const root=document.querySelector('.training-active-session');if(!root){clear();return;}const rect=root.getBoundingClientRect();if(drag.x<rect.left||drag.x>rect.right){drag.slot=null;return;}const cards=[...root.querySelectorAll('details.sport-ex')];let hit=document.elementFromPoint(drag.x,drag.y)?.closest('details.sport-ex');if(!hit){hit=cards.find(e=>e.getBoundingClientRect().top>drag.y)||cards.at(-1);}if(!hit)return;const index=cards.indexOf(hit),r=hit.getBoundingClientRect(),after=drag.y>r.top+r.height/2;drag.slot=index+(after?1:0);hit.classList.add(after?'exercise-drop-after':'exercise-drop-before');}
+function scroll(){if(!drag?.started)return;const speed=drag.y<110?-Math.ceil((110-drag.y)/8):drag.y>innerHeight-110?Math.ceil((drag.y-innerHeight+110)/8):0;if(speed){window.scrollBy(0,Math.max(-18,Math.min(18,speed)));target();}frame=requestAnimationFrame(scroll);}
+document.addEventListener('click',e=>{if(e.target.closest('[data-exercise-drag]')){e.preventDefault();e.stopPropagation();}},true);
+document.addEventListener('pointerdown',e=>{const handle=e.target.closest('[data-exercise-drag]');if(!handle||e.button!==0||!sport.active)return;clear();drag={id:e.pointerId,handle,card:handle.closest('details.sport-ex'),from:Number(handle.dataset.exerciseDrag),sessionId:sport.active.id,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,started:false,slot:null};handle.setPointerCapture(e.pointerId);e.preventDefault();});
+document.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;drag.x=e.clientX;drag.y=e.clientY;if(!drag.started&&Math.hypot(drag.x-drag.startX,drag.y-drag.startY)>7){drag.started=true;drag.card.classList.add('exercise-is-dragging');drag.ghost=document.createElement('div');drag.ghost.className='exercise-drag-ghost';drag.ghost.textContent=sport.active?.exercises[drag.from]?.name||'Exercice';document.body.append(drag.ghost);frame=requestAnimationFrame(scroll);}if(drag.started){e.preventDefault();drag.ghost.style.transform=`translate(${Math.max(8,Math.min(innerWidth-180,drag.x-60))}px,${drag.y+18}px)`;target();}},{passive:false});
+document.addEventListener('pointerup',e=>{if(!drag||e.pointerId!==drag.id)return;const d=drag,slot=d.slot,to=slot===null?d.from:slot-(slot>d.from?1:0);clear();if(d.started&&slot!==null)move(d.from,to,d.sessionId);});
+document.addEventListener('pointercancel',clear);window.addEventListener('blur',clear);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();clear();return;}const handle=e.target.closest('[data-exercise-drag]');if(!handle||!['ArrowUp','ArrowDown'].includes(e.key)||!sport.active)return;e.preventDefault();const from=Number(handle.dataset.exerciseDrag);move(from,from+(e.key==='ArrowUp'?-1:1),sport.active.id);});
+const previous=sportRender;sportRender=function(...args){clear();const result=previous(...args);decorate();return result;};decorate();
+})();
+</script></body
   ></html
 >
