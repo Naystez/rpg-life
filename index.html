@@ -5301,6 +5301,296 @@
           padding: 8px;
           font-size: 12px;
         }
+      }</style
+    ><style id="rpg-audio-feedback-style">
+      #trainingRoot .training-hero::after {
+        right: 14px;
+        top: auto;
+        bottom: 8px;
+        font-size: 58px;
+        opacity: 0.22;
+        z-index: 0;
+      }
+      #trainingRoot .training-hero > * {
+        position: relative;
+        z-index: 1;
+      }
+      #trainingRoot .training-hero h2 {
+        padding-right: 0;
+        overflow-wrap: anywhere;
+      }
+      #trainingRoot .training-hero p {
+        padding-right: 55px;
+      }
+      .quest-delete {
+        color: #ffadb9;
+        border-color: #cf527b;
+      }
+      .rpg-audio-panel {
+        margin: 18px 0;
+      }
+      .rpg-audio-quick {
+        order: 2;
+        flex: 0 0 44px;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 20px;
+        border-radius: 11px;
+        background: #0b2035;
+        color: #c8e8ff;
+        border: 1px solid #416784;
+        cursor: pointer;
+      }
+      body.shinobi-mode .rpg-audio-quick {
+        background: #103628;
+        color: #b8f3d2;
+        border-color: #4aaf7b;
+      }
+      @media (max-width: 850px) {
+        .topbar h1 {
+          flex-basis: 90px;
+        }
+      }
+      .rpg-audio-panel h3 {
+        margin-top: 0;
+      }
+      .rpg-audio-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .rpg-audio-grid label {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .rpg-audio-grid input[type="range"] {
+        width: 100%;
+        min-width: 0;
+        accent-color: #60c9ff;
+      }
+      .rpg-audio-grid input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+      }
+      .rpg-audio-panel button {
+        min-height: 44px;
+        padding: 9px 13px;
+        border: 1px solid #4383ad;
+        border-radius: 9px;
+        background: linear-gradient(135deg, #16446a, #10243f);
+        color: #e7f6ff;
+        font: inherit;
+        cursor: pointer;
+      }
+      .rpg-audio-panel p {
+        line-height: 1.5;
+      }
+      #questFeedback {
+        position: fixed;
+        z-index: 9000;
+        left: 50%;
+        top: max(18px, env(safe-area-inset-top));
+        transform: translateX(-50%);
+        max-width: calc(100vw - 28px);
+        width: max-content;
+        padding: 13px 18px;
+        border: 1px solid #7eedc2;
+        border-radius: 14px;
+        color: #edfff8;
+        background: #0b292bee;
+        box-shadow:
+          0 8px 30px #0006,
+          0 0 22px #54e9b333;
+        pointer-events: none;
+        font-weight: 700;
+        animation: questReward 0.32s ease-out;
+      }
+      #questFeedback[hidden] {
+        display: none;
+      }
+      .quest-feedback-particle {
+        position: fixed;
+        z-index: 8999;
+        width: 6px;
+        height: 6px;
+        border-radius: 2px;
+        background: #8ffbd4;
+        pointer-events: none;
+        animation: questSpark 0.65s ease-out forwards;
+      }
+      .quest-just-done {
+        animation: questCard 0.7s ease-out;
+      }
+      @keyframes questReward {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -12px) scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0) scale(1);
+        }
+      }
+      @keyframes questSpark {
+        to {
+          transform: translate(var(--dx), var(--dy)) rotate(110deg);
+          opacity: 0;
+        }
+      }
+      @keyframes questCard {
+        35% {
+          box-shadow:
+            inset 0 0 0 2px #88efc3,
+            0 0 20px #76edbd66;
+        }
+      }
+      @media (max-width: 600px) {
+        .rpg-audio-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        #questModulesSeparate {
+          grid-template-columns: minmax(0, 1fr) !important;
+        }
+        #questModulesSeparate > * {
+          min-width: 0;
+          width: 100%;
+        }
+        .quest-editor-item,
+        .quest-editor-fields {
+          min-width: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #questFeedback,
+        .quest-feedback-particle,
+        .quest-just-done {
+          animation: none;
+        }
+        .quest-feedback-particle {
+          display: none;
+        }
+      }</style
+    ><style id="settings-shinobi-refinement">
+      /* A portal in the existing navigation, with the same underlying controls. */
+      .mobile-universe-trigger {
+        position: relative;
+        overflow: hidden;
+        gap: 8px !important;
+        border: 1px solid #4b957d !important;
+        border-radius: 13px !important;
+        background:
+          radial-gradient(ellipse at 0 0, #30795a55, transparent 75%),
+          linear-gradient(130deg, #142b35, #0a192b) !important;
+        box-shadow:
+          inset 0 1px #a1efc01c,
+          0 3px 12px #0003;
+        padding: 7px 10px 7px 7px !important;
+        min-height: 48px !important;
+      }
+      .universe-seal {
+        width: 31px;
+        height: 31px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        border: 1px solid #83d5a96b;
+        border-radius: 50%;
+        background: #184438;
+        color: #a8f4c8;
+        box-shadow: 0 0 13px #5acf9030;
+      }
+      .mobile-universe-trigger .universe-seal svg {
+        width: 21px;
+        height: 21px;
+      }
+      .universe-copy {
+        display: flex;
+        flex-direction: column;
+        text-align: left;
+        gap: 2px;
+      }
+      .universe-copy strong {
+        font-size: 12px;
+        letter-spacing: 1px;
+        color: #e7fff2;
+      }
+      .universe-copy small {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+        color: #9fc5bd;
+      }
+      .universe-arrow {
+        font-size: 14px;
+        color: #9ce2be;
+        margin-left: 2px;
+      }
+      .sidebar .tab[data-tab="training"] {
+        position: relative;
+        padding: 16px 13px !important;
+        border: 1px solid #437e72;
+        border-radius: 14px;
+        background:
+          radial-gradient(ellipse at 0 0, #285f5144, transparent 80%),
+          linear-gradient(135deg, #12283a, #0b1728);
+        box-shadow: inset 0 1px #a1efc01c;
+        color: #d9f9ed;
+      }
+      .sidebar .tab[data-tab="training"]::before {
+        content: "ENTRAÎNEMENT";
+        display: block;
+        margin-bottom: 8px;
+        font-size: 9px;
+        letter-spacing: 1.8px;
+        color: #9bdcbb;
+      }
+      .sidebar .tab[data-tab="training"]::after {
+        content: "Village Caché  →";
+        display: block;
+        margin-top: 9px;
+        font-size: 11px;
+        color: #98b8b8;
+      }
+      #settings .backup-panel {
+        background:
+          radial-gradient(ellipse at 100% 0, #1a42662e, transparent 70%),
+          #081222;
+        border-color: #365b7d;
+      }
+      .backup-panel h3 {
+        margin: 0 0 12px;
+        color: #b8e7ff;
+      }
+      .backup-panel .setting {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 18px 0;
+      }
+      .backup-panel button {
+        min-height: 46px;
+      }
+      .backup-panel .backup-coverage {
+        color: #9fbed2;
+        line-height: 1.6;
+      }
+      @media (max-width: 374px) {
+        .mobile-universe-trigger {
+          min-width: 125px !important;
+        }
+        .topbar h1 {
+          flex-basis: 75px !important;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .mobile-universe-trigger:hover {
+          box-shadow:
+            inset 0 1px #a1efc02c,
+            0 0 16px #5acf9025;
+        }
       }
     </style></head
   ><body
@@ -5618,21 +5908,24 @@
                 ><tbody id="historyRows"></tbody></table></div></section
           ><section id="settings" class="hidden"
             ><h2>⚙ SAUVEGARDE</h2
-            ><div class="panel"
+            ><div class="panel backup-panel"
+              ><h3>💾 Sauvegarder mon aventure</h3
               ><p
-                >Les données sont conservées localement sur cet appareil. Elles
-                ne sont pas synchronisées entre appareils via GitHub Pages.</p
+                >Un seul fichier JSON conserve toute ta progression : quêtes
+                personnalisées, historique, XP, aventure RPG, entraînements et
+                progression Shinobi, ainsi que tes réglages audio.</p
               ><div class="setting"
-                ><button id="backup">↓ Exporter sauvegarde JSON</button
-                ><button id="restore">↑ Importer sauvegarde JSON</button
+                ><button id="backup">↓ Exporter mon aventure</button
+                ><button id="restore">↑ Restaurer une sauvegarde</button
                 ><input
                   id="file"
                   type="file"
                   accept=".json,application/json"
                   hidden /></div
               ><div class="notice"
-                >Sur iPhone : Safari → Partager → Sur l'écran d'accueil. Pense à
-                exporter ta sauvegarde régulièrement.</div
+                >Tes données restent sur cet appareil, sans synchronisation
+                automatique. Exporte régulièrement une copie et garde-la dans
+                Fichiers ou sur ton ordinateur.</div
               ><p class="muted"
                 >Plafond technique : +250 XP par voie et +1 000 XP positifs par
                 jour, sans objectif obligatoire. Les malus sont comptabilisés
@@ -6983,8 +7276,10 @@
             name: q.name,
             xp: q.xp,
           });
+          const feedbackRect = b.getBoundingClientRect();
           if (t === today()) animateXP(b, q.xp);
           save();
+          if (t === today()) window.rpgFeedback?.quest(q, feedbackRect);
           if (t !== today()) return;
           const afterG = level(xpOf(), "global")[0],
             afterM = level(xpOf(q.module), "module")[0],
@@ -7892,7 +8187,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                     .find((x) => x.name === ex.name)
                     ?.sets.map((x) => x.kg + " kg × " + x.reps)
                     .join(" · ") || "Exercice ponctuel",
-                )}</p><div class="sport-actions"><button data-sport="renameActive" data-index="${i}">Remplacer</button><button data-sport="addSet" data-index="${i}">+ Série</button><button data-sport="completeExercise" data-index="${i}">✓ Tout valider</button><button data-sport="uncheckExercise" data-index="${i}">↶ Tout décocher</button><button data-sport="removeActiveEx" data-index="${i}">Retirer</button></div>${ex.sets.map((set, j) => `<div class="sport-row"><label class="sport-field">Série ${j + 1}<span> ${set.done ? "✓ Terminée" : "À faire"}</span></label><label class="sport-field">kg<input type="number" min="0" step="0.5" data-sport-field="kg" data-ex="${i}" data-set="${j}" value="${sportEsc(set.kg)}"></label><label class="sport-field">Rép.<input type="number" min="0" step="1" data-sport-field="reps" data-ex="${i}" data-set="${j}" value="${sportEsc(set.reps)}"></label><div><input class="sport-check" aria-label="Série terminée" type="checkbox" data-sport-field="done" data-ex="${i}" data-set="${j}" ${set.done ? "checked" : ""}><button data-sport="removeSet" data-index="${i}" data-set="${j}" title="Supprimer la série">×</button></div></div>`).join("")}</details>`,
+                )}</p><div class="sport-actions"><button data-sport="renameActive" data-index="${i}">Remplacer</button><button data-sport="addSet" data-index="${i}">+ Série</button><button data-sport="completeExercise" data-index="${i}">✓ Tout valider</button><button data-sport="uncheckExercise" data-index="${i}">↶ Tout décocher</button><button data-sport="removeActiveEx" data-index="${i}">Retirer</button></div>${ex.sets.map((set, j) => `<div class="sport-row"><label class="sport-field">Série ${j + 1}<span> ${set.done ? "✓ Terminée" : "À faire"}</span></label><label class="sport-field">kg<input type="number" min="0" step="0.5" data-sport-field="kg" data-ex="${i}" data-set="${j}" value="${sportEsc(set.kg)}"></label><label class="sport-field">Rép.<input type="number" min="0" step="1" data-sport-field="reps" data-ex="${i}" data-set="${j}" value="${sportEsc(set.reps)}"></label><div><input class="sport-check" aria-label="${sportEsc(ex.name)} · Série ${j + 1} terminée" type="checkbox" data-sport-field="done" data-ex="${i}" data-set="${j}" ${set.done ? "checked" : ""}><button data-sport="removeSet" data-index="${i}" data-set="${j}" title="Supprimer la série">×</button></div></div>`).join("")}</details>`,
             )
             .join(
               "",
@@ -8637,7 +8932,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         render();
       }
       function questEditorHtml() {
-        return `<div class="quest-editor-intro">Personnalise tes habitudes. Les quêtes archivées disparaissent des validations, mais leur historique et leurs XP déjà acquis sont conservés.</div>${mods
+        return `<div class="quest-editor-intro">Personnalise tes habitudes. Archive une quête pour la masquer, ou supprime-la de ta liste. Son historique et les XP déjà gagnés sont conservés dans les deux cas.</div>${mods
           .map(
             (m) =>
               `<div class="quest-editor-way" data-way="${esc(m)}"><div class="quest-editor-way-head"><h3>${esc(m)}</h3><button type="button" data-q-add="${esc(m)}">＋ Ajouter</button></div>${(() => {
@@ -8658,7 +8953,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                   .filter((q) => q.module === m)
                   .map(
                     (q) =>
-                      `<div class="quest-editor-item ${q.active === false ? "is-archived" : ""}"><div class="quest-editor-fields"><label>Quête<input type="text" maxlength="90" data-q-field="name" data-q-id="${q.id}" value="${esc(q.name)}"></label><label>XP / validation<input type="number" min="-250" max="250" step="10" data-q-field="xp" data-q-id="${q.id}" value="${q.xp}"></label><label>Validations / jour<input type="number" min="1" max="5" data-q-field="limit" data-q-id="${q.id}" value="${q.limit || 1}"></label><label>Objectif / semaine<select data-q-field="frequency" data-q-id="${q.id}">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${Number(q.frequency || 7) === n ? "selected" : ""}>${n} j / semaine</option>`).join("")}</select></label></div><div class="quest-editor-actions"><button type="button" class="archive" data-q-archive="${q.id}">${q.active === false ? "↶ Réactiver" : "◇ Archiver"}</button></div></div>`,
+                      `<div class="quest-editor-item ${q.active === false ? "is-archived" : ""}"><div class="quest-editor-fields"><label>Quête<input type="text" maxlength="90" data-q-field="name" data-q-id="${q.id}" value="${esc(q.name)}"></label><label>XP / validation<input type="number" min="-250" max="250" step="10" data-q-field="xp" data-q-id="${q.id}" value="${q.xp}"></label><label>Validations / jour<input type="number" min="1" max="5" data-q-field="limit" data-q-id="${q.id}" value="${q.limit || 1}"></label><label>Objectif / semaine<select data-q-field="frequency" data-q-id="${q.id}">${[1, 2, 3, 4, 5, 6, 7].map((n) => `<option value="${n}" ${Number(q.frequency || 7) === n ? "selected" : ""}>${n} j / semaine</option>`).join("")}</select></label></div><div class="quest-editor-actions"><button type="button" class="archive" data-q-archive="${q.id}">${q.active === false ? "↶ Réactiver" : "◇ Archiver"}</button><button type="button" class="quest-delete" data-q-delete="${q.id}" aria-label="Supprimer la quête ${esc(q.name)}">Supprimer</button></div></div>`,
                   )
                   .join("") || '<p class="muted">Aucune quête active.</p>'
               }</div>`,
@@ -8708,6 +9003,44 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             active: true,
           });
           persistQuests();
+          return;
+        }
+        const delQuest = e.target.closest("[data-q-delete]");
+        if (delQuest) {
+          const id = Number(delQuest.dataset.qDelete);
+          const q = DATA.quests.find((q) => q.id === id);
+          if (
+            !q ||
+            !confirm(
+              "Supprimer la quête « " +
+                q.name +
+                " » de ta liste ? Son historique et les XP déjà gagnés seront conservés.",
+            )
+          )
+            return;
+          const remaining = DATA.quests.filter((q) => q.id !== id);
+          const nextFrequencies = { ...frequencies };
+          delete nextFrequencies[id];
+          try {
+            for (const key of [QUEST_CONFIG_KEY, frequencyKey]) {
+              if (
+                appStorage.getItem(key) === null &&
+                localStorage.getItem(key) !== null
+              )
+                throw Error(
+                  "Données originales protégées ; exporte une sauvegarde avant toute réparation.",
+                );
+            }
+            appStorage.commit({
+              [QUEST_CONFIG_KEY]: JSON.stringify(remaining),
+              [frequencyKey]: JSON.stringify(nextFrequencies),
+            });
+            DATA.quests = remaining;
+            frequencies = nextFrequencies;
+            render();
+          } catch (err) {
+            alert("Suppression non enregistrée : " + err.message);
+          }
           return;
         }
         const arc = e.target.closest("[data-q-archive]");
@@ -9621,30 +9954,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               ?.click();
           }
         });
-        // Independent export, useful for transferring V6 progress between devices.
-        const settings = document.getElementById("settings");
-        if (settings) {
-          let box = document.createElement("div");
-          box.className = "system-console";
-          box.innerHTML =
-            '<h3>💾 Sauvegarde du Système V6</h3><p class="system-muted">La sauvegarde complète ci-dessous rassemble les données locales RPG Life et l’extension Système V6. À conserver en lieu sûr.</p><button class="system-button" id="sysExport">Exporter mon aventure complète</button>';
-          settings.appendChild(box);
-          box
-            .querySelector("button")
-            .addEventListener("click", exportAdventure);
-          let input = document.createElement("input");
-          input.type = "file";
-          input.accept = ".json";
-          input.hidden = true;
-          box.appendChild(input);
-          let restore = document.createElement("button");
-          restore.className = "system-button";
-          restore.style.marginLeft = "10px";
-          restore.textContent = "Restaurer sauvegarde V6";
-          box.appendChild(restore);
-          restore.onclick = () => input.click();
-          input.onchange = () => restoreAdventure(input);
-        }
         document.addEventListener("rpg-life:changed", render);
         // System-styled welcome, preserving the existing first-run/returning logic.
         const welcome = document.getElementById("welcomeScreen");
@@ -10129,26 +10438,23 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               options.open = openState.get(options.dataset.easyFold) ?? false;
               options.innerHTML = "<summary>⚙️ Options de l’exercice</summary>";
               if (actions) options.append(actions);
-              if (extras.length) {
-                const list = document.createElement("div");
-                list.className = "sport-actions";
-                extras.forEach((b, j) => {
-                  b.textContent = "Retirer la série " + (j + 1);
-                  list.append(b);
-                });
-                options.append(list);
-              }
-              const ex = sport.active.exercises[i],
-                next = ex.sets.findIndex((s) => !s.done),
-                button = document.createElement("button");
-              button.type = "button";
-              button.className = "primary easy-validate";
-              button.dataset.easyValidate = String(i);
-              button.textContent =
-                next < 0
-                  ? "→ Exercice suivant"
-                  : "✓ Valider la série " + (next + 1);
-              el.append(button, options);
+              extras.forEach((b) => b.remove());
+              const ex = sport.active.exercises[i];
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.dataset.sport = "removeSet";
+              remove.dataset.index = String(i);
+              remove.dataset.set = String(ex.sets.length - 1);
+              remove.textContent = "− Retirer une série";
+              remove.title = "Retirer la dernière série de cet exercice";
+              remove.disabled = ex.sets.length <= 1;
+              (actions || options).append(remove);
+              const removeExercise = options.querySelector(
+                '[data-sport="removeActiveEx"]',
+              );
+              if (removeExercise)
+                removeExercise.textContent = "Retirer l’exercice";
+              el.append(options);
             }
             const finish = root.querySelector('[data-sport="finish"]');
             if (finish) {
@@ -10217,37 +10523,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             ...document.querySelectorAll("#trainingRoot details.sport-ex"),
           ];
         }
-        document.addEventListener("click", (e) => {
-          const b = e.target.closest("[data-easy-validate]");
-          if (!b || !sport.active) return;
-          const i = Number(b.dataset.easyValidate),
-            ex = sport.active.exercises[i];
-          if (!ex) return;
-          const j = ex.sets.findIndex((s) => !s.done);
-          if (j >= 0) ex.sets[j].done = true;
-          const done = ex.sets.every((s) => s.done);
-          if (done) {
-            let next = sport.active.exercises.findIndex(
-              (x, n) => n > i && x.sets.some((s) => !s.done),
-            );
-            if (next < 0)
-              next = sport.active.exercises.findIndex((x) =>
-                x.sets.some((s) => !s.done),
-              );
-            sportOpenExercise = next < 0 ? i : next;
-          } else sportOpenExercise = i;
-          if (sportSave()) {
-            notify(j >= 0 ? "Série enregistrée ✓" : "Exercice terminé ✓");
-            const target = document.querySelector(
-              '[data-easy-validate="' + sportOpenExercise + '"]',
-            );
-            target?.focus({ preventScroll: true });
-            if (done)
-              document
-                .querySelector("#trainingRoot details.sport-ex[open]")
-                ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-          }
-        });
         window.rpgLifeErgonomics = { sport: sportUI };
         sportUI(document.getElementById("trainingRoot"));
       })();</script
@@ -10316,10 +10591,14 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         function updateSwitch() {
           const shinobi = document.body.classList.contains("shinobi-mode");
           trigger.innerHTML =
+            '<span class="universe-seal" aria-hidden="true">' +
             (shinobi ? icon("home") : icon("leaf")) +
-            "<span>" +
-            (shinobi ? "RPG Life" : "Shinobi") +
-            '</span><span aria-hidden="true">' +
+            "</span>" +
+            '<span class="universe-copy"><strong>' +
+            (shinobi ? "RPG LIFE" : "SHINOBI") +
+            "</strong><small>" +
+            (shinobi ? "Retour à l’aventure" : "Entraînement") +
+            '</small></span><span class="universe-arrow" aria-hidden="true">' +
             (shinobi ? "↩" : "→") +
             "</span>";
           trigger.setAttribute(
@@ -10357,6 +10636,355 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               window.scrollTo({ top: 0, behavior: "instant" }),
             );
         });
+      })();</script
+    ><script id="rpg-audio-feedback">
+      /* Original procedural music: no download, external service or copyrighted recording. */
+      (() => {
+        "use strict";
+        const KEY_AUDIO = "rpg-life-audio-v1";
+        let pref = {
+          music: false,
+          effects: false,
+          musicVolume: 0.25,
+          effectsVolume: 0.4,
+        };
+        try {
+          const p = JSON.parse(appStorage.getItem(KEY_AUDIO) || "null");
+          if (p && typeof p === "object") {
+            for (const k of ["music", "effects"])
+              if (typeof p[k] === "boolean") pref[k] = p[k];
+            for (const k of ["musicVolume", "effectsVolume"])
+              if (Number.isFinite(p[k]))
+                pref[k] = Math.max(0, Math.min(1, p[k]));
+          }
+        } catch (_) {}
+        let ctx,
+          musicGain,
+          effectsGain,
+          timer,
+          nextTime = 0,
+          step = 0,
+          started = false,
+          playing = false;
+        let mood = document.body.classList.contains("shinobi-mode")
+          ? "shinobi"
+          : "ascension";
+        const panel = document.createElement("div");
+        panel.className = "panel rpg-audio-panel";
+        panel.innerHTML = `<h3>🎵 Musiques & sons</h3><p>Deux ambiances instrumentales originales : Ascension et Village Caché. L’ambiance suit automatiquement ton univers.</p><div class="rpg-audio-grid"><div><button type="button" id="rpgMusicToggle">▶ Lancer la musique</button><label for="rpgMusicVolume">Volume de la musique <output id="rpgMusicValue"></output><input id="rpgMusicVolume" type="range" min="0" max="100" step="1"></label></div><div><label><input type="checkbox" id="rpgEffects"> Effets sonores des validations</label><label for="rpgEffectsVolume">Volume des effets <output id="rpgEffectsValue"></output><input id="rpgEffectsVolume" type="range" min="0" max="100" step="1"></label><button type="button" id="rpgSoundTest">Écouter un aperçu</button></div></div><p class="muted" id="rpgAudioStatus" role="status"></p><p class="muted">Lance l’audio avec un appui. Il se met en pause lorsque l’application passe en arrière-plan. Après réouverture, un appui peut être nécessaire pour reprendre. Les sons restent facultatifs.</p>`;
+        const settings = document.getElementById("settings");
+        settings.querySelector("h2").textContent = "⚙ PARAMÈTRES";
+        settings.append(panel);
+        const quick = document.createElement("button");
+        quick.type = "button";
+        quick.className = "rpg-audio-quick";
+        document.querySelector(".topbar").append(quick);
+        quick.addEventListener("click", () =>
+          document.getElementById("rpgMusicToggle").click(),
+        );
+        const $ = (id) => document.getElementById(id);
+        function persist() {
+          appStorage.setItem(KEY_AUDIO, JSON.stringify(pref));
+        }
+        function ui(message) {
+          $("rpgMusicToggle").textContent = playing
+            ? "⏸ Mettre en pause"
+            : "▶ " +
+              (pref.music ? "Reprendre la musique" : "Lancer la musique");
+          $("rpgMusicToggle").setAttribute("aria-pressed", String(playing));
+          quick.textContent = playing ? "⏸" : "♫";
+          quick.title = playing
+            ? "Mettre la musique en pause"
+            : "Lancer ou reprendre la musique";
+          quick.setAttribute("aria-label", quick.title);
+          quick.setAttribute("aria-pressed", String(playing));
+          $("rpgMusicVolume").value = Math.round(pref.musicVolume * 100);
+          $("rpgEffectsVolume").value = Math.round(pref.effectsVolume * 100);
+          $("rpgMusicValue").textContent =
+            Math.round(pref.musicVolume * 100) + " %";
+          $("rpgEffectsValue").textContent =
+            Math.round(pref.effectsVolume * 100) + " %";
+          $("rpgEffects").checked = pref.effects;
+          $("rpgAudioStatus").textContent =
+            message ||
+            (playing
+              ? "En lecture · " +
+                (mood === "shinobi" ? "Village Caché" : "Ascension")
+              : "Musique en pause");
+        }
+        async function unlock() {
+          try {
+            const Audio = window.AudioContext || window.webkitAudioContext;
+            if (!Audio) throw Error("Audio non disponible dans ce navigateur.");
+            if (!ctx) {
+              ctx = new Audio();
+              musicGain = ctx.createGain();
+              effectsGain = ctx.createGain();
+              musicGain.connect(ctx.destination);
+              effectsGain.connect(ctx.destination);
+              musicGain.gain.value = 0;
+              effectsGain.gain.value = pref.effectsVolume * 0.25;
+              ctx.addEventListener("statechange", () => {
+                if (ctx.state !== "running" && playing) {
+                  playing = false;
+                  stopTimer();
+                  ui("Audio suspendu : touche Reprendre la musique.");
+                }
+              });
+            }
+            await ctx.resume();
+            if (ctx.state !== "running")
+              throw Error("Touche à nouveau le bouton pour activer l’audio.");
+            started = true;
+            return true;
+          } catch (e) {
+            ui(e.message || "Impossible de lancer l’audio.");
+            return false;
+          }
+        }
+        function note(
+          midi,
+          when,
+          duration,
+          volume,
+          type = "sine",
+          bus = musicGain,
+        ) {
+          if (!ctx || !bus || ctx.state !== "running") return;
+          const osc = ctx.createOscillator(),
+            gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.value = 440 * Math.pow(2, (midi - 69) / 12);
+          gain.gain.setValueAtTime(0, when);
+          gain.gain.linearRampToValueAtTime(volume, when + 0.018);
+          gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+          osc.connect(gain);
+          gain.connect(bus);
+          osc.start(when);
+          osc.stop(when + duration + 0.02);
+          osc.onended = () => {
+            osc.disconnect();
+            gain.disconnect();
+          };
+        }
+        function stopTimer() {
+          if (timer) clearInterval(timer);
+          timer = null;
+        }
+        function tick() {
+          if (!playing || ctx.state !== "running" || document.hidden) return;
+          if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.05;
+          while (nextTime < ctx.currentTime + 0.35) {
+            const shinobi = mood === "shinobi",
+              beat = shinobi ? 0.48 : 0.6;
+            const chords = shinobi
+              ? [
+                  [50, 57, 62, 65],
+                  [46, 53, 58, 62],
+                  [48, 55, 60, 64],
+                  [45, 52, 57, 60],
+                ]
+              : [
+                  [45, 52, 57, 60],
+                  [41, 48, 53, 57],
+                  [48, 55, 60, 64],
+                  [43, 50, 55, 59],
+                ];
+            const chord = chords[Math.floor(step / 16) % 4];
+            if (step % 8 === 0) {
+              chord
+                .slice(1)
+                .forEach((n, i) =>
+                  note(n, nextTime + i * 0.035, beat * 7, 0.065, "sine"),
+                );
+              note(chord[0] - 12, nextTime, beat * 5, 0.1, "sine");
+            }
+            const melody = shinobi
+              ? [12, 7, 12, 15, 19, 15, 12, 7, 12, 19, 22, 19, 15, 12, 7, 10]
+              : [12, 7, 15, 19, 12, 7, 15, 22, 19, 15, 12, 7, 10, 14, 17, 14];
+            if (step % 2 === 0 || shinobi)
+              note(
+                chord[0] + melody[step % 16],
+                nextTime,
+                beat * 1.7,
+                0.055,
+                shinobi ? "triangle" : "sine",
+              );
+            step++;
+            nextTime += beat;
+          }
+        }
+        function startMusic() {
+          if (!ctx || ctx.state !== "running" || document.hidden || !pref.music)
+            return;
+          stopTimer();
+          playing = true;
+          nextTime = ctx.currentTime + 0.06;
+          musicGain.gain.cancelScheduledValues(ctx.currentTime);
+          musicGain.gain.setTargetAtTime(
+            pref.musicVolume * 0.65,
+            ctx.currentTime,
+            0.12,
+          );
+          tick();
+          timer = setInterval(tick, 150);
+          ui();
+        }
+        function pause() {
+          playing = false;
+          stopTimer();
+          if (ctx) {
+            musicGain.gain.cancelScheduledValues(ctx.currentTime);
+            musicGain.gain.setTargetAtTime(0, ctx.currentTime, 0.035);
+          }
+          ui();
+        }
+        function chime(force = false) {
+          if (!ctx || ctx.state !== "running" || (!force && !pref.effects))
+            return;
+          effectsGain.gain.setTargetAtTime(
+            pref.effectsVolume * 0.25,
+            ctx.currentTime,
+            0.01,
+          );
+          [76, 83, 88].forEach((n, i) =>
+            note(n, ctx.currentTime + i * 0.075, 0.3, 0.3, "sine", effectsGain),
+          );
+        }
+        $("rpgMusicToggle").addEventListener("click", async () => {
+          if (playing) {
+            pref.music = false;
+            pause();
+            persist();
+          } else if (await unlock()) {
+            pref.music = true;
+            persist();
+            startMusic();
+          }
+        });
+        $("rpgEffects").addEventListener("change", async (e) => {
+          pref.effects = e.target.checked;
+          persist();
+          if (pref.effects && (await unlock())) chime();
+        });
+        $("rpgSoundTest").addEventListener("click", async () => {
+          if (await unlock()) chime(true);
+        });
+        for (const [id, key] of [
+          ["rpgMusicVolume", "musicVolume"],
+          ["rpgEffectsVolume", "effectsVolume"],
+        ]) {
+          $(id).addEventListener("input", (e) => {
+            pref[key] = Number(e.target.value) / 100;
+            if (ctx)
+              (key === "musicVolume"
+                ? musicGain
+                : effectsGain
+              ).gain.setTargetAtTime(
+                key === "musicVolume"
+                  ? playing
+                    ? pref[key] * 0.65
+                    : 0
+                  : pref[key] * 0.25,
+                ctx.currentTime,
+                0.04,
+              );
+            ui();
+          });
+          $(id).addEventListener("change", persist);
+        }
+        new MutationObserver(() => {
+          const next = document.body.classList.contains("shinobi-mode")
+            ? "shinobi"
+            : "ascension";
+          if (next !== mood) {
+            mood = next;
+            step = 0;
+            if (playing) {
+              pause();
+              startMusic();
+            } else ui();
+          }
+        }).observe(document.body, {
+          attributes: true,
+          attributeFilter: ["class"],
+        });
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) pause();
+          else if (started && pref.music && ctx?.state === "running")
+            startMusic();
+        });
+        window.addEventListener("pagehide", pause);
+        const reward = document.createElement("div");
+        reward.id = "questFeedback";
+        reward.hidden = true;
+        reward.setAttribute("role", "status");
+        reward.setAttribute("aria-live", "polite");
+        document.body.append(reward);
+        let rewardTimer;
+        window.rpgFeedback = {
+          quest(q, rect) {
+            if (q.xp <= 0) return;
+            reward.textContent = "✓ Quête validée · +" + q.xp + " XP";
+            reward.hidden = false;
+            reward.style.animation = "none";
+            void reward.offsetWidth;
+            reward.style.animation = "";
+            clearTimeout(rewardTimer);
+            rewardTimer = setTimeout(() => {
+              reward.hidden = true;
+            }, 1800);
+            document
+              .querySelectorAll(
+                '#questModulesSeparate [data-id="' + q.id + '"]',
+              )
+              .forEach((b) => {
+                const row = b.closest(".quest") || b.parentElement;
+                row.classList.remove("quest-just-done");
+                void row.offsetWidth;
+                row.classList.add("quest-just-done");
+              });
+            if (
+              rect &&
+              !matchMedia("(prefers-reduced-motion: reduce)").matches
+            ) {
+              for (let i = 0; i < 8; i++) {
+                const p = document.createElement("i");
+                p.className = "quest-feedback-particle";
+                p.style.left =
+                  Math.min(
+                    innerWidth - 12,
+                    Math.max(12, rect.left + rect.width / 2),
+                  ) + "px";
+                p.style.top = rect.top + rect.height / 2 + "px";
+                p.style.setProperty(
+                  "--dx",
+                  Math.cos((i * Math.PI) / 4) * 52 + "px",
+                );
+                p.style.setProperty(
+                  "--dy",
+                  Math.sin((i * Math.PI) / 4) * 45 - 18 + "px",
+                );
+                document.body.append(p);
+                setTimeout(() => p.remove(), 700);
+              }
+            }
+            if (pref.effects) {
+              if (ctx?.state === "running") chime();
+              else
+                unlock().then((ok) => {
+                  if (ok) chime();
+                });
+            }
+          },
+          status: () => ({
+            playing,
+            mood,
+            preferences: { ...pref },
+            audioState: ctx?.state || "not-started",
+          }),
+        };
+        ui();
       })();
     </script></body
   ></html
