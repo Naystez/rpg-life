@@ -5,7 +5,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
     /><meta name="theme-color" content="#02050e" /><title
-      >RPG LIFE · ASCENSION V6.9</title
+      >RPG LIFE · Monarque &amp; Shinobi</title
     ><style>
       :root {
         font-family:
@@ -4447,6 +4447,15 @@
       }</style
     ><script id="v68-storage">
       /* V6.8 — Storage and JSON boundary. Existing names and progression are unchanged. */
+      function feastWeekOf(date) {
+        const d = new Date(date + "T12:00:00");
+        d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+        return [
+          d.getFullYear(),
+          String(d.getMonth() + 1).padStart(2, "0"),
+          String(d.getDate()).padStart(2, "0"),
+        ].join("-");
+      }
       const appStorage = (() => {
         "use strict";
         const blocked = new Set(),
@@ -4516,6 +4525,28 @@
             )
           )
             fail("Historique de quêtes invalide");
+          if (key === "rpg-life-v1") {
+            if (
+              v.some(
+                (x) =>
+                  x.feast !== undefined &&
+                  (x.feast !== true ||
+                    x.module !== "Nutrition" ||
+                    x.xp !== 0 ||
+                    !finite(x.feastOriginalXp) ||
+                    x.feastOriginalXp >= 0 ||
+                    x.feastOriginalXp < -250),
+              )
+            )
+              fail("Festin du héros invalide");
+            const feasts = v.filter((x) => x.feast === true);
+            if (
+              new Set(feasts.map((x) => feastWeekOf(x.date))).size !==
+              feasts.length
+            )
+              fail("Un seul Festin du héros est autorisé par semaine");
+          }
+
           if (key === "rpg-life-training-v45") {
             if (
               !object(v) ||
@@ -4578,6 +4609,68 @@
               new Set(v.items.map((x) => x.id)).size !== v.items.length)
           )
             fail("Messagerie invalide");
+          if (
+            key === "rpg-life-shinobi-clan-v1" &&
+            (!object(v) ||
+              v.version !== 1 ||
+              (v.clan !== null &&
+                ![
+                  "uchiwa",
+                  "senju",
+                  "hyuga",
+                  "uzumaki",
+                  "sarutobi",
+                  "nara",
+                  "akimichi",
+                  "yamanaka",
+                  "inuzuka",
+                  "aburame",
+                  "otsutsuki",
+                ].includes(v.clan)))
+          )
+            fail("Clan Shinobi invalide");
+          if (
+            key === "rpg-life-clan-campaign-v1" &&
+            (!object(v) ||
+              v.version !== 1 ||
+              !object(v.clans) ||
+              !Object.entries(v.clans).every(
+                ([id, c]) =>
+                  [
+                    "uchiwa",
+                    "senju",
+                    "hyuga",
+                    "uzumaki",
+                    "sarutobi",
+                    "nara",
+                    "akimichi",
+                    "yamanaka",
+                    "inuzuka",
+                    "aburame",
+                    "otsutsuki",
+                  ].includes(id) &&
+                  object(c) &&
+                  Array.isArray(c.sessions) &&
+                  c.sessions.length <= 50000 &&
+                  c.sessions.every((x) => typeof x === "string") &&
+                  new Set(c.sessions).size === c.sessions.length &&
+                  Array.isArray(c.claimed) &&
+                  c.claimed.length <= 5 &&
+                  c.claimed.every(
+                    (x) =>
+                      object(x) &&
+                      typeof x.at === "string" &&
+                      Number.isFinite(Date.parse(x.at)),
+                  ),
+              ) ||
+              new Set(Object.values(v.clans).flatMap((c) => c.sessions))
+                .size !==
+                Object.values(v.clans).reduce(
+                  (n, c) => n + c.sessions.length,
+                  0,
+                ))
+          )
+            fail("Campagne de clan invalide");
           if (
             key === "rpg-life-quests-custom-v1" &&
             !(
@@ -5585,7 +5678,7 @@
         color: #9bdcbb;
       }
       .sidebar .tab[data-tab="training"]::after {
-        content: "Village Caché  →";
+        content: "village de Konoha  →";
         display: block;
         margin-top: 9px;
         font-size: 11px;
@@ -5745,6 +5838,776 @@
         .rpg-inbox-dialog {
           max-height: 85dvh;
         }
+      }</style
+    ><style id="konoha-clans-style">
+      #trainingRoot .training-hero h2 {
+        font-size: clamp(23px, 4vw, 34px);
+        line-height: 1.2;
+      }
+      #trainingRoot .konoha-clan-badge {
+        display: block;
+        margin-top: 14px;
+        padding: 9px 12px;
+        min-height: 44px;
+        max-width: 100%;
+        text-align: left;
+        border: 1px solid #65ba8f;
+        background: #103c2e;
+        color: #d8ffea;
+        border-radius: 10px;
+        font: inherit;
+        cursor: pointer;
+      }
+      #trainingRoot .konoha-clans {
+        border-color: #4a9275;
+        background: linear-gradient(140deg, #143a2f, #0b1d29);
+      }
+      .konoha-clans h2 {
+        font-size: 22px;
+        margin-top: 0;
+      }
+      .konoha-clan-picker > summary {
+        min-height: 44px;
+        padding: 12px 0;
+        cursor: pointer;
+        font-weight: 700;
+        color: #a9edc7;
+      }
+      .konoha-clan-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+      #trainingRoot .konoha-clan-card {
+        border: 1px solid #34544e;
+        border-top: 3px solid var(--clan-color);
+        border-radius: 13px;
+        padding: 16px;
+        background: #0b202b;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      #trainingRoot .konoha-clan-card.chosen {
+        border-color: var(--clan-color);
+        box-shadow: inset 0 0 20px #7cc3a222;
+      }
+      .konoha-clan-card > span {
+        font-size: 30px;
+      }
+      #trainingRoot .konoha-clan-card h3 {
+        margin: 8px 0;
+        color: var(--clan-color);
+      }
+      .konoha-clan-card b {
+        font-size: 13px;
+      }
+      .konoha-clan-card p {
+        line-height: 1.5;
+        font-size: 14px;
+      }
+      .konoha-clan-card small {
+        color: #adc4cf;
+        margin-bottom: 15px;
+      }
+      #trainingRoot .konoha-clan-card button {
+        margin-top: auto;
+        min-height: 44px;
+        padding: 10px 12px;
+        border: 1px solid var(--clan-color);
+        border-radius: 9px;
+        background: #173a42;
+        color: #ecfff7;
+        font: inherit;
+        cursor: pointer;
+      }
+      #trainingRoot .konoha-clan-card button:disabled {
+        opacity: 0.55;
+        cursor: default;
+      }
+      @media (max-width: 600px) {
+        .konoha-clan-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }</style
+    ><style id="clan-campaign-style">
+      #trainingRoot .clan-campaign {
+        border: 1px solid var(--clan-color);
+        background:
+          radial-gradient(ellipse at 100% 0, #7cc3a21a, transparent 65%),
+          #0d2632;
+      }
+      .clan-campaign > small {
+        letter-spacing: 1.5px;
+        color: var(--clan-color);
+      }
+      .clan-campaign h2 {
+        font-size: 24px;
+      }
+      .clan-technique {
+        width: 150px;
+        height: 150px;
+        margin: 24px auto 12px;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        border: 2px solid #38515e;
+        border-radius: 50%;
+        background: #091c27;
+        color: #718d9a;
+        transition:
+          box-shadow 0.4s,
+          transform 0.4s;
+      }
+      .clan-technique > span {
+        font-size: 56px;
+        line-height: 1.4;
+      }
+      .clan-technique > div {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+      }
+      .clan-technique i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #354b56;
+      }
+      .clan-technique .lit {
+        background: var(--clan-color);
+      }
+      .clan-technique.phase-1,
+      .clan-technique.phase-2,
+      .clan-technique.phase-3,
+      .clan-technique.phase-4,
+      .clan-technique.phase-5 {
+        color: var(--clan-color);
+        border-color: var(--clan-color);
+      }
+      .clan-technique.phase-2 {
+        box-shadow: 0 0 15px #7cc3a233;
+      }
+      .clan-technique.phase-3 {
+        box-shadow:
+          0 0 22px #0bbbef55,
+          inset 0 0 20px #0bbbef22;
+        border-style: double;
+        border-width: 5px;
+      }
+      .clan-technique.phase-4 {
+        box-shadow:
+          0 0 28px #7cc3a266,
+          inset 0 0 25px #7cc3a233;
+        border-width: 5px;
+      }
+      .clan-technique.phase-5 {
+        box-shadow:
+          0 0 38px #0bbbef66,
+          inset 0 0 28px #e72e8a33;
+        border: 7px double var(--clan-color);
+      }
+      .clan-technique-name,
+      .clan-title,
+      .clan-complete {
+        text-align: center;
+        color: var(--clan-color);
+        font-weight: 750;
+      }
+      .clan-technique-badge {
+        margin-top: 10px;
+        color: #c2f6de;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .clan-mission {
+        margin: 20px 0;
+        padding: 16px;
+        background: #0a1e2b;
+        border: 1px solid #487b75;
+        border-radius: 13px;
+      }
+      .clan-campaign button {
+        min-height: 44px;
+        padding: 10px 14px;
+        border: 1px solid #5b9d8c;
+        border-radius: 9px;
+        background: #194942;
+        color: #effff8;
+        font: inherit;
+        cursor: pointer;
+        max-width: 100%;
+      }
+      .clan-campaign button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .clan-scene {
+        padding: 16px;
+        background: #0d2030;
+        border-left: 3px solid var(--clan-color);
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      .clan-scene p {
+        line-height: 1.5;
+      }
+      .clan-scene b {
+        display: block;
+        color: var(--clan-color);
+        margin-bottom: 5px;
+      }
+      .clan-scene .clan-narration {
+        color: #abc8d6;
+        font-style: italic;
+      }
+      .clan-journal summary,
+      .clan-collection summary {
+        padding: 14px 0;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .clan-journal button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        margin: 8px 0;
+      }
+      @keyframes clanAwaken {
+        40% {
+          transform: scale(1.08);
+          filter: brightness(1.6);
+        }
+      }
+      .clan-awakening {
+        animation: clanAwaken 0.7s ease-out;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .clan-awakening {
+          animation: none;
+        }
+        .clan-technique {
+          transition: none;
+        }
+      }</style
+    ><style id="clan-quests-personalized">
+      .shinobi-finish-panel {
+        max-height: 86dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        box-sizing: border-box;
+        width: min(450px, calc(100vw - 28px));
+        padding: 24px 16px;
+        overflow-wrap: anywhere;
+      }
+      .shinobi-finish-panel h2 {
+        font-size: clamp(22px, 6vw, 29px);
+      }
+      .shinobi-finish-panel button {
+        max-width: 100%;
+        box-sizing: border-box;
+        white-space: normal;
+      }
+      .clan-finish-reward {
+        padding: 16px;
+        margin: 18px 0;
+        border: 1px solid #7cc3a2;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #174439, #102a3f);
+        text-align: left;
+      }
+      .clan-finish-reward h3 {
+        color: #b8f5d2;
+        font-size: 20px;
+        margin: 0 0 10px;
+      }
+      .clan-finish-reward p {
+        line-height: 1.5;
+      }
+      .clan-finish-reward button {
+        display: block;
+        width: 100%;
+        min-height: 48px;
+        background: #7cc3a2;
+        color: #07261b;
+        border: 1px solid #a9edc8;
+        border-radius: 10px;
+        padding: 12px;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .clan-session-highlights {
+        border-top: 1px solid #548c7a;
+        margin-top: 14px;
+        padding-top: 5px;
+        color: #daeee8;
+        font-size: 13px;
+      }
+      .clan-mission .clan-focus-progress {
+        margin: 10px 0;
+        padding: 10px;
+        border-left: 3px solid var(--clan-color);
+        background: #17353b;
+        border-radius: 7px;
+        font-size: 13px;
+      }</style
+    ><style id="hero-feast-style">
+      .hero-feast {
+        padding: 16px;
+        margin-top: 14px;
+        border: 1px solid #b69d59;
+        border-radius: 13px;
+        background:
+          radial-gradient(ellipse at 100% 0, #e0bb5c20, transparent 70%),
+          linear-gradient(135deg, #16312b, #11212e);
+        min-width: 0;
+      }
+      .hero-feast-heading {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .hero-feast-heading > span {
+        font-size: 32px;
+      }
+      .hero-feast h4 {
+        margin: 0 0 5px;
+        color: #f2dc9b;
+        font-size: 19px;
+      }
+      .hero-feast p {
+        line-height: 1.5;
+        margin: 9px 0;
+      }
+      .hero-feast-heading p {
+        margin: 0;
+        font-size: 13px;
+      }
+      .hero-feast .hero-feast-week {
+        font-size: 11px;
+        letter-spacing: 0.4px;
+        color: #e9d6a0;
+      }
+      .hero-feast .hero-feast-help {
+        font-size: 12px;
+        color: #a9c6c1;
+      }
+      .hero-feast button {
+        padding: 11px 14px;
+        min-height: 44px;
+        max-width: 100%;
+        border: 1px solid #c5ac68;
+        border-radius: 9px;
+        background: #796634;
+        color: #fff8dd;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .hero-feast button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .hero-feast label {
+        display: block;
+        font-size: 13px;
+      }
+      .hero-feast select {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        min-height: 44px;
+        margin-top: 6px;
+        padding: 8px;
+        border: 1px solid #56766e;
+        border-radius: 8px;
+        background: #122b32;
+        color: #e9fff7;
+        font: inherit;
+      }</style
+    ><style id="shadow-army-style">
+      .shadow-card {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .shadow-card > small {
+        font-size: 10px;
+        letter-spacing: 1px;
+        color: #9ec7e8;
+      }
+      .shadow-card > p {
+        line-height: 1.5;
+        margin: 0;
+      }
+      .shadow-card > button {
+        margin-top: auto;
+      }
+      .shadow-card .system-chip {
+        width: fit-content;
+      }
+      .shadow-card.system-locked {
+        opacity: 0.8;
+      }</style
+    ><style id="shadow-hunter-profile">
+      [data-hunter-profile] .system-stage {
+        align-items: center;
+        gap: 22px;
+        padding: 16px;
+        background:
+          radial-gradient(ellipse at 0 50%, #713ddc24, transparent 75%), #091427;
+        border: 1px solid #4c4380;
+        border-radius: 16px;
+      }
+      [data-hunter-profile] .system-avatar.shadow-profile-avatar {
+        display: block;
+        padding: 0;
+        background: radial-gradient(ellipse, #8d62ed15, transparent 72%);
+        border: 0;
+        border-radius: 0;
+        width: 150px;
+        min-width: 150px;
+        height: 205px;
+        filter: none;
+        box-shadow: none;
+      }
+      .shadow-profile-avatar svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      .shadow-profile-eyes {
+        filter: drop-shadow(0 0 4px #bca6ff);
+      }
+      .profile-name-display {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      .profile-name-display h4 {
+        font-size: clamp(21px, 4vw, 30px);
+        margin: 0;
+        color: #eee5ff;
+        overflow-wrap: anywhere;
+        max-width: 100%;
+      }
+      .profile-name-edit {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        padding: 9px;
+        border: 1px solid #8268bd;
+        border-radius: 10px;
+        background: #241c3e;
+        color: #d4c3ff;
+        cursor: pointer;
+      }
+      .profile-name-edit svg {
+        width: 20px;
+        height: 20px;
+      }
+      #profileNameForm[hidden],
+      #profileNameDisplay[hidden] {
+        display: none;
+      }
+      #profileNameForm label {
+        display: block;
+        color: #cbbce8;
+        font-size: 13px;
+      }
+      #profileNicknameInput {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 300px;
+        min-width: 0;
+        min-height: 44px;
+        margin: 7px 0 10px;
+        padding: 10px;
+        border: 1px solid #8b72bd;
+        border-radius: 9px;
+        background: #0b1629;
+        color: #f7efff;
+        font: inherit;
+      }
+      .profile-name-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .profile-name-actions button {
+        min-height: 44px;
+        padding: 9px 12px;
+        border: 1px solid #7966a3;
+        border-radius: 9px;
+        background: #33294f;
+        color: #f2ecff;
+        font: inherit;
+        cursor: pointer;
+      }
+      #profileNameStatus {
+        font-size: 12px;
+        color: #ffc7cc;
+      }
+      @media (max-width: 600px) {
+        [data-hunter-profile] .system-stage {
+          gap: 12px;
+          padding: 12px;
+          align-items: center;
+        }
+        [data-hunter-profile] .system-avatar.shadow-profile-avatar {
+          width: 105px;
+          min-width: 105px;
+          height: 155px;
+        }
+        .profile-name-display {
+          gap: 7px;
+        }
+        .profile-name-display h4 {
+          font-size: 21px;
+        }
+      }
+      @media (max-width: 374px) {
+        [data-hunter-profile] .system-avatar.shadow-profile-avatar {
+          width: 80px;
+          min-width: 80px;
+          height: 125px;
+        }
+        .profile-name-actions {
+          gap: 6px;
+        }
+        .profile-name-actions button {
+          padding: 8px;
+          font-size: 12px;
+        }
+      }</style
+    ><style id="dungeon-grades">
+      .dungeon-tags {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 10px 0;
+      }
+      .dungeon-tags .dungeon-kind {
+        margin: 0;
+      }
+      .dungeon-grade {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 5px 10px;
+        border: 1px solid #6a98b8;
+        border-radius: 8px;
+        background: #153249;
+        color: #c2e4fa;
+        font-size: 11px;
+        font-weight: 850;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-sizing: border-box;
+      }
+      .dungeon-grade[data-grade="D"] {
+        border-color: #67ae94;
+        color: #b5f0d1;
+        background: #16392e;
+      }
+      .dungeon-grade[data-grade="C"] {
+        border-color: #a889d8;
+        color: #decbff;
+        background: #2c2147;
+      }
+      .dungeon-grade[data-grade="A"] {
+        border-color: #d583a4;
+        color: #ffd2e0;
+        background: #442035;
+      }
+      .dungeon-grade[data-grade="S"] {
+        border-color: #d6b45e;
+        color: #ffdf8f;
+        background: #44391c;
+      }</style
+    ><style id="welcome-two-paths-style">
+      #welcomeScreen {
+        padding: max(16px, env(safe-area-inset-top)) 14px
+          max(16px, env(safe-area-inset-bottom));
+        background:
+          radial-gradient(ellipse at 20% 30%, #48257933, transparent 60%),
+          radial-gradient(ellipse at 80% 70%, #226e4933, transparent 60%),
+          #030a15f7;
+      }
+      #welcomeScreen .welcome-box {
+        width: min(850px, 100%);
+        max-width: 850px;
+        max-height: 90dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 30px;
+        border-radius: 22px;
+        background: #0b1729;
+        border: 1px solid #3e526e;
+        box-sizing: border-box;
+      }
+      #welcomeScreen .welcome-kicker {
+        color: #b1c8e8;
+        font-size: 11px;
+        letter-spacing: 2px;
+        margin-bottom: 12px;
+      }
+      #welcomeScreen h2 {
+        font:
+          700 clamp(27px, 5vw, 38px) Georgia,
+          serif;
+        margin: 0 0 12px;
+        color: #f1f4ff;
+      }
+      #welcomeScreen #welcomeMessage {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #b8cce2;
+        margin: 0 0 24px;
+      }
+      .welcome-paths {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      .welcome-path-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        min-width: 0;
+        min-height: 280px;
+        box-sizing: border-box;
+        padding: 24px 18px;
+        border: 1px solid #8f74ce;
+        border-radius: 18px;
+        background:
+          radial-gradient(ellipse at 50% 0, #8960db44, transparent 80%), #151c35;
+        color: #f0e7ff;
+        cursor: pointer;
+        font: inherit;
+      }
+      .welcome-path-card.shinobi {
+        border-color: #62ae8c;
+        background:
+          radial-gradient(ellipse at 50% 0, #5aba7a33, transparent 80%), #102c2b;
+        color: #d9ffe7;
+      }
+      .welcome-path-symbol {
+        display: grid;
+        place-items: center;
+        width: 76px;
+        height: 76px;
+        border: 1px solid #9477c9;
+        border-radius: 50%;
+        background: #201e3b;
+        box-shadow: 0 0 30px #8b60d533;
+        color: #c4a3ff;
+      }
+      .shinobi .welcome-path-symbol {
+        border-color: #7cc3a2;
+        background: #173c31;
+        color: #acedd0;
+        box-shadow: 0 0 30px #65cc9833;
+      }
+      .welcome-path-symbol svg {
+        width: 45px;
+        height: 45px;
+      }
+      .welcome-path-title {
+        font-size: 23px;
+        font-weight: 850;
+        line-height: 1.2;
+      }
+      .welcome-path-kind {
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 12px;
+        font-weight: 750;
+      }
+      .welcome-path-description {
+        font-size: 13px;
+        line-height: 1.5;
+        opacity: 0.85;
+      }
+      .welcome-path-action {
+        display: block;
+        margin-top: 6px;
+        padding: 10px 16px;
+        border-radius: 9px;
+        background: #68459b;
+        color: white;
+        font-weight: 750;
+        font-size: 14px;
+      }
+      .shinobi .welcome-path-action {
+        background: #28765a;
+      }
+      .welcome-path-card:focus-visible {
+        outline: 3px solid #ebf5ff;
+        outline-offset: 4px;
+      }
+      #welcomeScreen .welcome-note {
+        color: #98aec6;
+        margin: 22px 0 0;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      @media (max-width: 600px) {
+        #welcomeScreen .welcome-box {
+          padding: 24px 18px;
+        }
+        .welcome-paths {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 14px;
+        }
+        .welcome-path-card {
+          min-height: 200px;
+          padding: 18px 12px;
+          gap: 7px;
+        }
+        .welcome-path-symbol {
+          width: 52px;
+          height: 52px;
+        }
+        .welcome-path-symbol svg {
+          width: 31px;
+          height: 31px;
+        }
+        .welcome-path-title {
+          font-size: 21px;
+        }
+        .welcome-path-description {
+          font-size: 12px;
+        }
+        #welcomeScreen #welcomeMessage {
+          margin-bottom: 18px;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .welcome-path-card {
+          transition:
+            transform 0.15s,
+            box-shadow 0.15s;
+        }
+        .welcome-path-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 30px #9563dc26;
+        }
+        .welcome-path-card.shinobi:hover {
+          box-shadow: 0 8px 30px #60d59526;
+        }
       }
     </style></head
   ><body
@@ -5782,9 +6645,9 @@
           ><button class="tab" data-tab="settings">⚙️ Paramètres</button
           ><button class="tab" data-tab="training"
             >🍃 &nbsp; Voie du Shinobi</button
-          ><div class="shinobi-side-menu" aria-label="Menu du Village Caché"
+          ><div class="shinobi-side-menu" aria-label="Menu du village de Konoha"
             ><div class="shinobi-side-caption"
-              >🍃 VILLAGE CACHÉ <small>UNIVERS SHINOBI</small></div
+              >🍃 KONOHA <small>UNIVERS SHINOBI</small></div
             ><button
               type="button"
               class="shinobi-side-link"
@@ -5899,8 +6762,7 @@
                     <path
                       d="M137 7L144 29 138 40 131 29Z"
                       fill="#70eaff"
-                    /></svg></div
-                ><span class="avatar-rank" id="avatarRank">RECRUE</span></div
+                    /></svg></div></div
               ><div class="hero-data"
                 ><div class="eyebrow">Niveau global</div
                 ><div class="big-level" id="heroLevel">0</div
@@ -5946,11 +6808,10 @@
                   ><div class="mini-log" id="miniLog"></div></div
                 ><div class="panel"
                   ><h2>✦ STATISTIQUES</h2
-                  ><div class="stats" id="stats"></div></div></div></div
-            ><div class="notice"
-              >Mode équilibrage · Bonus de streak et succès désactivés. Niveaux,
-              titres et quêtes repris de ton classeur Excel.</div
-            ></section
+                  ><div
+                    class="stats"
+                    id="stats"
+                  ></div></div></div></div></section
           ><section id="quests" class="hidden"
             ><div class="row"
               ><h2>⚔ QUÊTES QUOTIDIENNES</h2
@@ -5996,10 +6857,10 @@
             ><div class="quest-zone" id="questModulesSeparate"></div></section
           ><section id="training" class="hidden"
             ><button type="button" class="shinobi-return" data-shinobi-return
-              >← Quitter le Village Caché · Retour à mon aventure</button
+              >← Quitter le village de Konoha · Retour à mon aventure</button
             ><div class="page-heading"
-              ><span class="eyebrow">🍃 VILLAGE CACHÉ</span
-              ><h2>🍃 LA VOIE DU SHINOBI</h2
+              ><span class="eyebrow">🍃 KONOHA</span
+              ><h2>🍃 BIENVENUE AU VILLAGE DE KONOHA</h2
               ><p
                 >Ton terrain d’entraînement, tes missions et ta progression
                 ninja.</p
@@ -6010,8 +6871,8 @@
               ><span class="eyebrow">SYSTÈME // PORTAILS</span
               ><h2>◈ DONJONS & MISSIONS SECRÈTES</h2
               ><p
-                >Des épreuves à plusieurs jours, des portails à découvrir et des
-                reliques cosmétiques. Aucun XP supplémentaire.</p
+                >Termine les donjons pour obtenir de l’équipement et accéder aux
+                combats de boss.</p
               ></div
             ><div id="dungeonRoot"></div
             ><div class="rpg-panel"
@@ -6032,10 +6893,7 @@
             ><div class="page-heading"
               ><span class="eyebrow">JOURNAL DU CHASSEUR</span
               ><h2>▥ STATISTIQUES DE PROGRESSION</h2
-              ><p
-                >Observe tes habitudes sur 7, 30 et 90 jours, sans modifier
-                l’équilibrage.</p
-              ></div
+              ><p>Consulte ta régularité sur 7, 30 et 90 jours.</p></div
             ><div class="periods" id="periods"
               ><button data-period="7">7 jours</button
               ><button class="selected" data-period="30">30 jours</button
@@ -6088,7 +6946,7 @@
             ></section
           ></main
         ><div class="footer"
-          >RPG LIFE · Édition Éveil du chasseur · Application autonome</div
+          >RPG LIFE · Voie du Monarque &amp; Voie du Shinobi</div
         ></div
       ></div
     ><div
@@ -6357,126 +7215,126 @@
             [78, 180750, "Chasseur de rang S"],
             [79, 185000, "Chasseur de rang S"],
             [80, 189250, "Chasseur de rang S"],
-            [81, 193750, "Chasseur de rang S"],
-            [82, 198250, "Chasseur de rang S"],
-            [83, 202750, "Chasseur de rang S"],
-            [84, 207250, "Chasseur de rang S"],
-            [85, 211750, "Chasseur de rang S"],
-            [86, 216500, "Chasseur de rang S"],
-            [87, 221250, "Chasseur de rang S"],
-            [88, 226000, "Chasseur de rang S"],
-            [89, 230750, "Chasseur de rang S"],
-            [90, 235500, "Chasseur de rang S"],
-            [91, 240500, "Chasseur de rang S"],
-            [92, 245500, "Chasseur de rang S"],
-            [93, 250500, "Chasseur de rang S"],
-            [94, 255500, "Chasseur de rang S"],
-            [95, 260500, "Chasseur de rang S"],
-            [96, 265750, "Chasseur de rang S"],
-            [97, 271000, "Chasseur de rang S"],
-            [98, 276250, "Chasseur de rang S"],
-            [99, 281500, "Chasseur de rang S"],
-            [100, 286750, "Chasseur de rang S"],
-            [101, 292250, "Chasseur de rang S"],
-            [102, 297750, "Chasseur de rang S"],
-            [103, 303250, "Chasseur de rang S"],
-            [104, 308750, "Chasseur de rang S"],
-            [105, 314250, "Chasseur de rang S"],
-            [106, 320000, "Chasseur de rang S"],
-            [107, 325750, "Chasseur de rang S"],
-            [108, 331500, "Chasseur de rang S"],
-            [109, 337250, "Chasseur de rang S"],
-            [110, 343000, "Chasseur de rang S"],
-            [111, 349000, "Chasseur de rang S"],
-            [112, 355000, "Chasseur de rang S"],
-            [113, 361000, "Chasseur de rang S"],
-            [114, 367000, "Chasseur de rang S"],
-            [115, 373000, "Chasseur de rang S"],
-            [116, 379000, "Chasseur de rang S"],
-            [117, 385000, "Chasseur de rang S"],
-            [118, 391000, "Chasseur de rang S"],
-            [119, 397000, "Chasseur de rang S"],
-            [120, 403000, "Chasseur de rang S"],
-            [121, 409000, "Chasseur de rang S"],
-            [122, 415000, "Chasseur de rang S"],
-            [123, 421000, "Chasseur de rang S"],
-            [124, 427000, "Chasseur de rang S"],
-            [125, 433000, "Chasseur de rang S"],
-            [126, 439000, "Chasseur de rang S"],
-            [127, 445000, "Chasseur de rang S"],
-            [128, 451000, "Chasseur de rang S"],
-            [129, 457000, "Chasseur de rang S"],
-            [130, 463000, "Chasseur de rang S"],
-            [131, 469000, "Chasseur de rang S"],
-            [132, 475000, "Chasseur de rang S"],
-            [133, 481000, "Chasseur de rang S"],
-            [134, 487000, "Chasseur de rang S"],
-            [135, 493000, "Chasseur de rang S"],
-            [136, 499000, "Chasseur de rang S"],
-            [137, 505000, "Chasseur de rang S"],
-            [138, 511000, "Chasseur de rang S"],
-            [139, 517000, "Chasseur de rang S"],
-            [140, 523000, "Chasseur de rang S"],
-            [141, 529000, "Chasseur de rang S"],
-            [142, 535000, "Chasseur de rang S"],
-            [143, 541000, "Chasseur de rang S"],
-            [144, 547000, "Chasseur de rang S"],
-            [145, 553000, "Chasseur de rang S"],
-            [146, 559000, "Chasseur de rang S"],
-            [147, 565000, "Chasseur de rang S"],
-            [148, 571000, "Chasseur de rang S"],
-            [149, 577000, "Chasseur de rang S"],
-            [150, 583000, "Chasseur de rang S"],
-            [151, 590000, "Chasseur de rang S"],
-            [152, 597000, "Chasseur de rang S"],
-            [153, 604000, "Chasseur de rang S"],
-            [154, 611000, "Chasseur de rang S"],
-            [155, 618000, "Chasseur de rang S"],
-            [156, 625000, "Chasseur de rang S"],
-            [157, 632000, "Chasseur de rang S"],
-            [158, 639000, "Chasseur de rang S"],
-            [159, 646000, "Chasseur de rang S"],
-            [160, 653000, "Chasseur de rang S"],
-            [161, 660000, "Chasseur de rang S"],
-            [162, 667000, "Chasseur de rang S"],
-            [163, 674000, "Chasseur de rang S"],
-            [164, 681000, "Chasseur de rang S"],
-            [165, 688000, "Chasseur de rang S"],
-            [166, 695000, "Chasseur de rang S"],
-            [167, 702000, "Chasseur de rang S"],
-            [168, 709000, "Chasseur de rang S"],
-            [169, 716000, "Chasseur de rang S"],
-            [170, 723000, "Chasseur de rang S"],
-            [171, 730000, "Chasseur de rang S"],
-            [172, 737000, "Chasseur de rang S"],
-            [173, 744000, "Chasseur de rang S"],
-            [174, 751000, "Chasseur de rang S"],
-            [175, 758000, "Chasseur de rang S"],
-            [176, 765000, "Chasseur de rang S"],
-            [177, 772000, "Chasseur de rang S"],
-            [178, 779000, "Chasseur de rang S"],
-            [179, 786000, "Chasseur de rang S"],
-            [180, 793000, "Chasseur de rang S"],
-            [181, 800000, "Chasseur de rang S"],
-            [182, 807000, "Chasseur de rang S"],
-            [183, 814000, "Chasseur de rang S"],
-            [184, 821000, "Chasseur de rang S"],
-            [185, 828000, "Chasseur de rang S"],
-            [186, 835000, "Chasseur de rang S"],
-            [187, 842000, "Chasseur de rang S"],
-            [188, 849000, "Chasseur de rang S"],
-            [189, 856000, "Chasseur de rang S"],
-            [190, 863000, "Chasseur de rang S"],
-            [191, 870000, "Chasseur de rang S"],
-            [192, 877000, "Chasseur de rang S"],
-            [193, 884000, "Chasseur de rang S"],
-            [194, 891000, "Chasseur de rang S"],
-            [195, 898000, "Chasseur de rang S"],
-            [196, 905000, "Chasseur de rang S"],
-            [197, 912000, "Chasseur de rang S"],
-            [198, 919000, "Chasseur de rang S"],
-            [199, 926000, "Chasseur de rang S"],
-            [200, 945500, "Chasseur de rang S"],
+            [81, 193750, "Monarque"],
+            [82, 198250, "Monarque"],
+            [83, 202750, "Monarque"],
+            [84, 207250, "Monarque"],
+            [85, 211750, "Monarque"],
+            [86, 216500, "Monarque"],
+            [87, 221250, "Monarque"],
+            [88, 226000, "Monarque"],
+            [89, 230750, "Monarque"],
+            [90, 235500, "Monarque"],
+            [91, 240500, "Monarque"],
+            [92, 245500, "Monarque"],
+            [93, 250500, "Monarque"],
+            [94, 255500, "Monarque"],
+            [95, 260500, "Monarque"],
+            [96, 265750, "Monarque"],
+            [97, 271000, "Monarque"],
+            [98, 276250, "Monarque"],
+            [99, 281500, "Monarque"],
+            [100, 286750, "Roi des monarques"],
+            [101, 292250, "Roi des monarques"],
+            [102, 297750, "Roi des monarques"],
+            [103, 303250, "Roi des monarques"],
+            [104, 308750, "Roi des monarques"],
+            [105, 314250, "Roi des monarques"],
+            [106, 320000, "Roi des monarques"],
+            [107, 325750, "Roi des monarques"],
+            [108, 331500, "Roi des monarques"],
+            [109, 337250, "Roi des monarques"],
+            [110, 343000, "Roi des monarques"],
+            [111, 349000, "Roi des monarques"],
+            [112, 355000, "Roi des monarques"],
+            [113, 361000, "Roi des monarques"],
+            [114, 367000, "Roi des monarques"],
+            [115, 373000, "Roi des monarques"],
+            [116, 379000, "Roi des monarques"],
+            [117, 385000, "Roi des monarques"],
+            [118, 391000, "Roi des monarques"],
+            [119, 397000, "Roi des monarques"],
+            [120, 403000, "Roi des monarques"],
+            [121, 409000, "Roi des monarques"],
+            [122, 415000, "Roi des monarques"],
+            [123, 421000, "Roi des monarques"],
+            [124, 427000, "Roi des monarques"],
+            [125, 433000, "Roi des monarques"],
+            [126, 439000, "Roi des monarques"],
+            [127, 445000, "Roi des monarques"],
+            [128, 451000, "Roi des monarques"],
+            [129, 457000, "Roi des monarques"],
+            [130, 463000, "Roi des monarques"],
+            [131, 469000, "Roi des monarques"],
+            [132, 475000, "Roi des monarques"],
+            [133, 481000, "Roi des monarques"],
+            [134, 487000, "Roi des monarques"],
+            [135, 493000, "Roi des monarques"],
+            [136, 499000, "Roi des monarques"],
+            [137, 505000, "Roi des monarques"],
+            [138, 511000, "Roi des monarques"],
+            [139, 517000, "Roi des monarques"],
+            [140, 523000, "Roi des monarques"],
+            [141, 529000, "Roi des monarques"],
+            [142, 535000, "Roi des monarques"],
+            [143, 541000, "Roi des monarques"],
+            [144, 547000, "Roi des monarques"],
+            [145, 553000, "Roi des monarques"],
+            [146, 559000, "Roi des monarques"],
+            [147, 565000, "Roi des monarques"],
+            [148, 571000, "Roi des monarques"],
+            [149, 577000, "Roi des monarques"],
+            [150, 583000, "Roi des monarques"],
+            [151, 590000, "Roi des monarques"],
+            [152, 597000, "Roi des monarques"],
+            [153, 604000, "Roi des monarques"],
+            [154, 611000, "Roi des monarques"],
+            [155, 618000, "Roi des monarques"],
+            [156, 625000, "Roi des monarques"],
+            [157, 632000, "Roi des monarques"],
+            [158, 639000, "Roi des monarques"],
+            [159, 646000, "Roi des monarques"],
+            [160, 653000, "Roi des monarques"],
+            [161, 660000, "Roi des monarques"],
+            [162, 667000, "Roi des monarques"],
+            [163, 674000, "Roi des monarques"],
+            [164, 681000, "Roi des monarques"],
+            [165, 688000, "Roi des monarques"],
+            [166, 695000, "Roi des monarques"],
+            [167, 702000, "Roi des monarques"],
+            [168, 709000, "Roi des monarques"],
+            [169, 716000, "Roi des monarques"],
+            [170, 723000, "Roi des monarques"],
+            [171, 730000, "Roi des monarques"],
+            [172, 737000, "Roi des monarques"],
+            [173, 744000, "Roi des monarques"],
+            [174, 751000, "Roi des monarques"],
+            [175, 758000, "Roi des monarques"],
+            [176, 765000, "Roi des monarques"],
+            [177, 772000, "Roi des monarques"],
+            [178, 779000, "Roi des monarques"],
+            [179, 786000, "Roi des monarques"],
+            [180, 793000, "Roi des monarques"],
+            [181, 800000, "Roi des monarques"],
+            [182, 807000, "Roi des monarques"],
+            [183, 814000, "Roi des monarques"],
+            [184, 821000, "Roi des monarques"],
+            [185, 828000, "Roi des monarques"],
+            [186, 835000, "Roi des monarques"],
+            [187, 842000, "Roi des monarques"],
+            [188, 849000, "Roi des monarques"],
+            [189, 856000, "Roi des monarques"],
+            [190, 863000, "Roi des monarques"],
+            [191, 870000, "Roi des monarques"],
+            [192, 877000, "Roi des monarques"],
+            [193, 884000, "Roi des monarques"],
+            [194, 891000, "Roi des monarques"],
+            [195, 898000, "Roi des monarques"],
+            [196, 905000, "Roi des monarques"],
+            [197, 912000, "Roi des monarques"],
+            [198, 919000, "Roi des monarques"],
+            [199, 926000, "Roi des monarques"],
+            [200, 945500, "Roi des monarques"],
           ],
           module: [
             [0, 0, "Chasseur de rang E"],
@@ -6914,7 +7772,7 @@
           Object.keys(claimedSurprises).length +
           " / " +
           SURPRISES.length +
-          ' reliques</span></div><div class="surprise-sub">Les missions se révèlent avec tes niveaux. Récompenses cosmétiques uniquement : aucun bonus XP pendant la phase de test.</div><div class="surprise-grid">' +
+          ' reliques</span></div><div class="surprise-sub">Les missions se révèlent avec tes niveaux. Termine les missions disponibles pour récupérer leurs récompenses, sans XP supplémentaire.</div><div class="surprise-grid">' +
           SURPRISES.map((q) => {
             const unlocked = surpriseUnlocked(q),
               done = !!claimedSurprises[q.id],
@@ -7057,16 +7915,6 @@
         document.getElementById("avatarArt").innerHTML = avatarSVG(
           Math.min(ri, 6),
         );
-        document.getElementById("avatarRank").textContent =
-          [
-            "RECRUE",
-            "AVENTURIER",
-            "HÉROS",
-            "MAÎTRE",
-            "LÉGENDE",
-            "MYTHIQUE",
-            "DIVIN",
-          ][Math.min(ri, 6)] || "CHASSEUR";
         document.getElementById("heroMotto").textContent = [
           "Chaque légende commence par un premier pas.",
           "Le pouvoir se forge dans la constance.",
@@ -7484,7 +8332,7 @@
                 analytics: "STATISTIQUES",
                 history: "HISTORIQUE",
                 settings: "PARAMÈTRES",
-                training: "🍃 VILLAGE CACHÉ · VOIE DU SHINOBI",
+                training: "🍃 KONOHA",
               }[b.dataset.tab] || b.textContent.trim();
         }),
       );
@@ -7550,7 +8398,7 @@
         const horns = rank >= 3;
         const crown = rank >= 5;
         const wings = rank >= 6;
-        return `<svg viewBox="0 0 320 350" role="img" aria-label="Avatar original : ${label}" xmlns="http://www.w3.org/2000/svg">
+        return `<svg viewBox="0 0 320 350" role="img" aria-label="Chasseur d’ombres en armure" xmlns="http://www.w3.org/2000/svg">
 <defs><radialGradient id="aura"><stop stop-color="${glow}" stop-opacity=".36"/><stop offset="1" stop-color="${glow}" stop-opacity="0"/></radialGradient><linearGradient id="armor" x1="0" x2="1" y1="0" y2="1"><stop stop-color="${metal}"/><stop offset=".48" stop-color="${dark}"/><stop offset="1" stop-color="#040610"/></linearGradient><filter id="halo"><feGaussianBlur stdDeviation="5"/></filter></defs>
 <ellipse cx="160" cy="179" rx="145" ry="160" fill="url(#aura)"/>
 ${wings ? `<path d="M145 178Q45 28 4 64L80 170 2 144 100 250M175 178Q275 28 316 64L240 170 318 144 220 250" fill="${dark}" stroke="${glow}" stroke-width="4"/>` : ""}
@@ -7660,6 +8508,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         const x = dungeonDetails(q);
         return `<div class="dungeon-timeline" aria-label="Progression du donjon">${x.days.map((d, i) => `<div class="dungeon-day ${x.passed[i] ? "done" : ""}" title="${d}"><span>${x.passed[i] ? "✓" : "◇"}</span><small>${d.slice(8)}/${d.slice(5, 7)}</small></div>`).join("")}</div>`;
       }
+      const DUNGEON_GRADES = {
+        gate: "E",
+        will: "D",
+        four: "C",
+        night: "A",
+        master: "S",
+      };
       function renderDungeons() {
         const root = document.getElementById("dungeonRoot");
         if (!root) return;
@@ -7673,7 +8528,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               ready = x.ready;
             const kind =
               q.kind === "cumulative" ? "Accomplissement" : "Régularité";
-            return `<article class="dungeon-card ${unlocked ? "" : "sealed"} ${claimed ? "cleared" : ""}"><div class="dungeon-portal">${unlocked ? q.icon : "🔒"}</div><div class="eyebrow">${claimed ? "✦ RELIQUE ACQUISE" : unlocked ? "⚠ PORTAIL OUVERT" : "PORTAIL SCELLÉ · NIVEAU " + q.lv}</div><h3>${unlocked ? q.name : "DONJON INCONNU"}</h3><span class="dungeon-kind">${kind}</span><p>${unlocked ? q.condition : "Atteins le niveau " + q.lv + " pour révéler cette épreuve."}</p><div class="dungeon-meta"><span>${q.days} journées · ${q.kind === "cumulative" ? "total sur la période" : "consécutives"}</span><b>${unlocked ? x.count + "/" + q.days : "???"}</b></div><div class="bar"><div class="fill" style="width:${unlocked ? (100 * x.count) / q.days : 0}%"></div></div>${unlocked ? dungeonTimeline(q) : ""}<div class="dungeon-status">${claimed ? "✓ VICTOIRE — récompense conservée" : !unlocked ? "🔒 Verrouillé" : ready ? "✦ Épreuve accomplie" : "◇ Épreuve en cours"}</div><div class="dungeon-reward">${unlocked ? "✦ Relique : " + q.reward : "✦ Récompense mystérieuse"}</div><button data-portal="${q.id}" ${!unlocked || claimed || !ready ? "disabled" : ""}>${claimed ? "✓ Donjon terminé" : !unlocked ? "🔒 Verrouillé" : ready ? "RÉCLAMER LA RELIQUE" : "Épreuve en cours"}</button></article>`;
+            return `<article class="dungeon-card ${unlocked ? "" : "sealed"} ${claimed ? "cleared" : ""}"><div class="dungeon-portal">${unlocked ? q.icon : "🔒"}</div><div class="eyebrow">${claimed ? "✦ RELIQUE ACQUISE" : unlocked ? "⚠ PORTAIL OUVERT" : "PORTAIL SCELLÉ · NIVEAU " + q.lv}</div><h3>${unlocked ? q.name : "DONJON INCONNU"}</h3><div class="dungeon-tags"><span class="dungeon-grade" data-grade="${DUNGEON_GRADES[q.id]}" title="Difficulté du donjon">Grade ${DUNGEON_GRADES[q.id]}</span><span class="dungeon-kind">${kind}</span></div><p>${unlocked ? q.condition : "Atteins le niveau " + q.lv + " pour révéler cette épreuve."}</p><div class="dungeon-meta"><span>${q.days} journées · ${q.kind === "cumulative" ? "total sur la période" : "consécutives"}</span><b>${unlocked ? x.count + "/" + q.days : "???"}</b></div><div class="bar"><div class="fill" style="width:${unlocked ? (100 * x.count) / q.days : 0}%"></div></div>${unlocked ? dungeonTimeline(q) : ""}<div class="dungeon-status">${claimed ? "✓ VICTOIRE — récompense conservée" : !unlocked ? "🔒 Verrouillé" : ready ? "✦ Épreuve accomplie" : "◇ Épreuve en cours"}</div><div class="dungeon-reward">${unlocked ? "✦ Relique : " + q.reward : "✦ Récompense mystérieuse"}</div><button data-portal="${q.id}" ${!unlocked || claimed || !ready ? "disabled" : ""}>${claimed ? "✓ Donjon terminé" : !unlocked ? "🔒 Verrouillé" : ready ? "RÉCLAMER LA RELIQUE" : "Épreuve en cours"}</button></article>`;
           }).join("") +
           '</div><p class="notice">Les donjons de régularité demandent une série consécutive ; les donjons d’accomplissement demandent toutes les journées de leur période, sans imposer un ordre de validation. Les reliques réclamées restent acquises et ne donnent aucun XP.</p>';
       }
@@ -8277,7 +9132,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         const l = sportLevel(),
           count = sport.sessions.length,
           unlocked = SPORT_GEAR.filter((g) => count >= g[2]);
-        let html = `<div class="training-hero"><div class="training-eyebrow">🍃 RPG LIFE · VILLAGE CACHÉ</div><h2>LA VOIE DU SHINOBI</h2><p>Chaque séance forge ton nindô.</p></div><nav class="training-nav shinobi-subnav" aria-label="Navigation du Village Caché"><button class="${sportPage === "village" ? "active" : ""}" data-sport="page" data-page="village">🏯 Village</button><button class="${["home", "library", "programs"].includes(sportPage) ? "active" : ""}" data-sport="page" data-page="home">⚔️ Entraînement</button><button class="${sportPage === "missions" ? "active" : ""}" data-sport="page" data-page="missions">📜 Missions</button><button class="${sportPage === "progress" ? "active" : ""}" data-sport="page" data-page="progress">🏆 Progression</button></nav>`;
+        let html = `<div class="training-hero"><div class="training-eyebrow">🍃 RPG LIFE · KONOHA</div><h2>BIENVENUE AU VILLAGE DE KONOHA</h2><p>Chaque séance forge ton nindô.</p></div><nav class="training-nav shinobi-subnav" aria-label="Navigation du village de Konoha"><button class="${sportPage === "village" ? "active" : ""}" data-sport="page" data-page="village">🏯 Village</button><button class="${["home", "library", "programs"].includes(sportPage) ? "active" : ""}" data-sport="page" data-page="home">⚔️ Entraînement</button><button class="${sportPage === "missions" ? "active" : ""}" data-sport="page" data-page="missions">📜 Missions</button><button class="${sportPage === "progress" ? "active" : ""}" data-sport="page" data-page="progress">🏆 Progression</button></nav>`;
         if (sportPage === "home")
           html += `<div class="sport-card sport-launch sport-date-compact"><label class="sport-field">📅 Date de la mission<input type="date" data-sport-date value="${sportChosenDate()}" max="${today()}"></label><label class="sport-field">Discipline<select id="sportDiscipline" data-sport-discipline><option value="Musculation" ${sportSportChoice === "Musculation" ? "selected" : ""}>🏋️ Musculation</option><option value="Autre" ${sportSportChoice === "Autre" ? "selected" : ""}>➕ Autre sport</option></select></label></div>`;
         if (sportPage === "village") {
@@ -8595,8 +9450,10 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             .querySelector('.shinobi-side-link[data-page="village"]')
             ?.focus();
         };
-        const timer = setTimeout(close, 6000);
-        overlay.querySelector("button").onclick = close;
+        const holdForClan =
+          window.rpgClanCampaign?.finishCard(session, overlay) || false;
+        const timer = holdForClan ? null : setTimeout(close, 6000);
+        overlay.querySelector("#shinobiFinishClose").onclick = close;
         overlay.addEventListener("keydown", (e) => {
           if (e.key === "Escape") {
             e.preventDefault();
@@ -8604,7 +9461,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }
           if (e.key === "Tab") {
             e.preventDefault();
-            overlay.querySelector("button").focus();
+            const buttons = [
+                ...overlay.querySelectorAll("button:not(:disabled)"),
+              ],
+              index = buttons.indexOf(document.activeElement);
+            buttons[
+              (index + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length
+            ].focus();
           }
         });
         overlay.querySelector("button").focus();
@@ -9507,6 +10370,35 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             ],
           ];
         }
+        let profileEditing = false,
+          profileDraft = null;
+        function shadowHunterAvatar(level) {
+          const glow =
+            level >= 100 ? "#e2baff" : level >= 81 ? "#bc89ff" : "#8a9dff";
+          return `<svg viewBox="0 0 220 300" role="img" aria-label="Chasseur d’ombres en armure sombre, lame et aura violette" xmlns="http://www.w3.org/2000/svg">
+ <defs><radialGradient id="profileShadowAura"><stop stop-color="${glow}" stop-opacity=".45"/><stop offset="1" stop-color="#040811" stop-opacity="0"/></radialGradient><linearGradient id="profileShadowSteel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#344365"/><stop offset=".4" stop-color="#101a31"/><stop offset=".7" stop-color="#060a16"/><stop offset="1" stop-color="#253252"/></linearGradient><linearGradient id="profileShadowBlade"><stop stop-color="#e7e6ff"/><stop offset=".4" stop-color="${glow}"/><stop offset="1" stop-color="#354d9b"/></linearGradient></defs>
+ <ellipse cx="110" cy="154" rx="104" ry="139" fill="url(#profileShadowAura)"/>
+ <g opacity=".24" fill="#08101f" stroke="${glow}" stroke-width="1"><path d="M8 262 22 167 38 151 47 105 61 151 72 169 79 266Z"/><path d="m14 146 24-21 7 32-25 17m190 88-22-95-17-16-9-46-14 46-12 18-7 97Z"/></g>
+ <path d="M77 113 42 158 25 279 82 265 108 291 141 266 195 280 172 158 142 114Z" fill="#070c1a" stroke="#263351" stroke-width="2"/>
+ <path d="m73 119-25 77-15 71 43-31 12 42m55-159 27 77 17 71-45-31-11 42" fill="#11132b" stroke="#5a4b8b" stroke-opacity=".6"/>
+ <path d="M81 115 110 105 140 115 157 167 143 239 111 265 77 240 63 167Z" fill="url(#profileShadowSteel)" stroke="#6679a5" stroke-width="2"/>
+ <path d="m65 126-32 17 11 39 35-13 13-35m64-8 31 17-12 39-34-13-13-35" fill="#17223c" stroke="#7685b0" stroke-width="2"/>
+ <path d="m35 143-8-28 24 19 22-19 6 31m99-3 10-28-25 19-22-19-4 31" fill="#101a30" stroke="${glow}" stroke-opacity=".65" stroke-width="1.5"/>
+ <path d="m45 177-8 43 19 22 18-27-1-43m103 5 7 43-20 22-17-27 1-43" fill="url(#profileShadowSteel)" stroke="#596c94" stroke-width="2"/>
+ <path d="m86 244-9 42 24-6 10-25 9 25 24 6-9-42" fill="#17213b" stroke="#596c94" stroke-width="2"/>
+ <path d="m78 151 32 28 33-28-10 48-23 25-23-25Z" fill="#0b1225" stroke="#7184b4" stroke-width="2"/>
+ <path d="m110 171 8 19-8 18-8-18Z" fill="${glow}"/><path d="m91 215 19 11 19-11m-42 15 23 12 24-12" fill="none" stroke="#798abb" stroke-width="2"/>
+ <path d="M74 101 70 66 87 39 111 25 137 40 151 68 146 102 127 123 94 123Z" fill="url(#profileShadowSteel)" stroke="#7184b1" stroke-width="2"/>
+ <path d="m78 67 33-24 33 24-5 32-29 26-27-26Z" fill="#030812" stroke="#3e4d74" stroke-width="1.5"/>
+ <path d="m82 76 22 9-5 7-16-7m55-9-22 9 5 7 16-7" fill="${glow}" class="shadow-profile-eyes"/>
+ <path d="m106 93 4 8 5-8m-16 16 11 7 12-7" fill="none" stroke="#7b85b9" stroke-width="1.5"/>
+ <path d="m80 57-6-26 22 14 15-28 16 28 22-14-7 27" fill="#1b2039" stroke="${glow}" stroke-width="2"/>
+ <path d="m145 231 57-141-10 151-24 40Z" fill="url(#profileShadowBlade)" stroke="#d7d9ff" stroke-width="1.2"/><path d="m159 238 32-112" fill="none" stroke="#f4eeff" stroke-width="1.5"/><path d="m140 230 41 17-4 8-40-17Z" fill="#344269" stroke="${glow}" stroke-width="1.5"/>
+ <path d="m26 272 26 9 18-7 40 15 35-14 29 8 20-11" fill="none" stroke="${glow}" stroke-opacity=".8" stroke-width="2"/>
+ <g fill="${glow}" opacity=".7"><path d="m23 192 3-8 3 8-3 8Zm172-31 3-8 3 8-3 8ZM41 79l2-6 2 6-2 6ZM178 63l2-6 2 6-2 6Z"/></g>
+ </svg>`;
+        }
+
         function renderRpg() {
           const root = document.getElementById("rpgRoot");
           if (!root) return;
@@ -9520,7 +10412,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             },
             daily = total(entries.filter((e) => e.date === today())),
             companion = window.rpgLifeSystem?.activeCompanion();
-          root.innerHTML = `<div class="rpg-panel" data-hunter-profile><h3>🧙 Profil du chasseur</h3><div class="system-stage"><div class="system-avatar tier${visual.stage - 1}">${visual.icon}</div><div><label>Pseudonyme <input id="rpgName" maxlength="32" value="${safe(state.name)}" style="background:#0a1729;border:1px solid #557398;border-radius:8px;color:white;padding:10px;max-width:100%;margin-left:8px"></label><p><span class="system-rank">RANG ${safe(visual.rank)}</span> · Niveau ${l}</p><p class="system-muted">${safe(current[0])} · Évolution visuelle ${visual.stage}/6</p></div></div><div class="system-grid"><div class="system-tile">Mission du jour<b>${daily} / 1 000 XP</b><div class="system-progress"><div style="width:${Math.min(100, Math.max(0, daily / 10))}%"></div></div><small>${daily >= 1000 ? "Mission parfaite" : daily >= 500 ? "Objectif quotidien atteint" : "Objectif conseillé : 500 XP"}</small></div><div class="system-tile">Compagnon actif<b>${safe(companion?.name || "Aucun")}</b><small>${companion ? "Bonus actif en combat : +2 " + safe(companion.bonus) : "Débloque un compagnon en vainquant un boss."}</small></div></div><p class="rpg-note">Les caractéristiques ci-dessous incluent les bonus actifs et sont utilisées en combat. Les quêtes quotidiennes restent facultatives.</p><div class="rpg-grid">${Object.entries(
+          root.innerHTML = `<div class="rpg-panel" data-hunter-profile><h3>🧙 Profil du chasseur</h3><div class="system-stage"><div class="system-avatar shadow-profile-avatar">${shadowHunterAvatar(l)}</div><div><div class="profile-name-display" id="profileNameDisplay" ${profileEditing ? "hidden" : ""}><h4>${safe(state.name)}</h4><button type="button" class="profile-name-edit" data-profile-edit aria-label="Modifier mon pseudonyme" title="Modifier mon pseudonyme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 15v5Z"/></svg></button></div><form id="profileNameForm" ${profileEditing ? "" : "hidden"}><label for="profileNicknameInput">Ton pseudonyme</label><input id="profileNicknameInput" maxlength="32" required autocomplete="nickname" value="${safe(profileDraft ?? state.name)}"><div class="profile-name-actions"><button type="submit">Enregistrer</button><button type="button" data-profile-cancel>Annuler</button></div><p id="profileNameStatus" role="status"></p></form><p><span class="system-rank">RANG ${safe(visual.rank)}</span> · Niveau ${l}</p><p class="system-muted">${safe(current[0])}</p></div></div><div class="system-grid"><div class="system-tile">Mission du jour<b>${daily} / 1 000 XP</b><div class="system-progress"><div style="width:${Math.min(100, Math.max(0, daily / 10))}%"></div></div><small>${daily >= 1000 ? "Mission parfaite" : daily >= 500 ? "Objectif quotidien atteint" : "Objectif conseillé : 500 XP"}</small></div><div class="system-tile">Compagnon actif<b>${safe(companion?.name || "Aucun")}</b><small>${companion ? "Bonus actif en combat : +2 " + safe(companion.bonus) : "Débloque un compagnon en vainquant un boss."}</small></div></div><div class="rpg-grid">${Object.entries(
             st,
           )
             .map(
@@ -9639,13 +10531,70 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           if (e.target.closest("[data-claim-dungeon]"))
             setTimeout(renderBosses, 50);
         });
-        document.addEventListener("change", (e) => {
-          if (e.target.id === "rpgName") {
-            state.name = e.target.value.trim().slice(0, 32) || "Chasseur";
-            persist();
-            document.dispatchEvent(new Event("rpg-life:changed"));
+        document.addEventListener("click", (e) => {
+          const edit = e.target.closest("[data-profile-edit]"),
+            cancel = e.target.closest("[data-profile-cancel]");
+          if (edit || cancel) {
+            profileEditing = !!edit;
+            profileDraft = state.name;
+            const form = document.getElementById("profileNameForm"),
+              display = document.getElementById("profileNameDisplay");
+            form.hidden = !profileEditing;
+            display.hidden = profileEditing;
+            if (profileEditing) {
+              const input = document.getElementById("profileNicknameInput");
+              input.value = profileDraft;
+              input.setCustomValidity("");
+              input.focus();
+              input.select();
+            } else document.querySelector("[data-profile-edit]")?.focus();
           }
         });
+        document.addEventListener("input", (e) => {
+          if (e.target.id === "profileNicknameInput") {
+            profileDraft = e.target.value;
+            e.target.setCustomValidity("");
+          }
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.target.closest?.("#profileNameForm") && e.key === "Escape") {
+            e.preventDefault();
+            document.querySelector("[data-profile-cancel]").click();
+          }
+        });
+        document.addEventListener("submit", (e) => {
+          if (e.target.id !== "profileNameForm") return;
+          e.preventDefault();
+          const input = document.getElementById("profileNicknameInput"),
+            name = input.value.trim().slice(0, 32);
+          if (!name) {
+            input.setCustomValidity("Choisis un pseudonyme.");
+            input.reportValidity();
+            return;
+          }
+          const next = { ...state, name };
+          try {
+            if (
+              appStorage.getItem(KEY_RPG) === null &&
+              localStorage.getItem(KEY_RPG) !== null
+            )
+              throw Error(
+                "Profil original protégé ; exporte une sauvegarde avant réparation.",
+              );
+            appStorage.commit({ [KEY_RPG]: JSON.stringify(next) });
+            state = next;
+            profileEditing = false;
+            profileDraft = null;
+            document.dispatchEvent(new Event("rpg-life:changed"));
+            document
+              .querySelector("[data-profile-edit]")
+              ?.focus({ preventScroll: true });
+          } catch (error) {
+            document.getElementById("profileNameStatus").textContent =
+              "Pseudonyme non enregistré : " + error.message;
+          }
+        });
+
         // Sync with existing import/export controls without altering the original data schema.
         // Add the RPG payload to the main exported JSON through the native download flow where possible.
         const observer = new MutationObserver(() => {
@@ -9665,49 +10614,124 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcomeTitle"
+      aria-describedby="welcomeMessage"
       hidden
     >
       <div class="welcome-box">
         <div class="welcome-kicker" id="welcomeKicker"
-          >LE PORTAIL DE L'ASCENSION</div
+          >RPG LIFE · DEUX VOIES</div
         >
-        <div class="welcome-symbol" aria-hidden="true">⚔</div>
-        <h2 id="welcomeTitle">RPG LIFE<br />ASCENSION</h2>
+        <h2 id="welcomeTitle">Choisis ta voie</h2>
         <p id="welcomeMessage"
-          >Chaque légende commence par une première quête. Tes habitudes forgent
-          ton aventure.</p
+          >Accomplis tes quêtes ou commence ton entraînement.</p
         >
-        <button type="button" class="welcome-cta" id="welcomeEnter"
-          >Commencer mon aventure →</button
+        <div class="welcome-paths">
+          <button
+            type="button"
+            class="welcome-path-card monarch"
+            id="welcomeEnter"
+          >
+            <span class="welcome-path-symbol" aria-hidden="true"
+              ><svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="m8 16 8 6 8-13 8 13 8-6-4 21H12L8 16Zm4 21h24M17 29h14M17 42h14"
+                /></svg
+            ></span>
+            <span class="welcome-path-kind">Quêtes</span
+            ><span class="welcome-path-title">Voie du Monarque</span>
+            <span class="welcome-path-description"
+              >Santé · Nutrition · Sport · Discipline</span
+            ><span class="welcome-path-action">Rejoindre l’accueil →</span>
+          </button>
+          <button
+            type="button"
+            class="welcome-path-card shinobi"
+            id="welcomeShinobi"
+          >
+            <span class="welcome-path-symbol" aria-hidden="true"
+              ><svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M39 7C16 5 5 18 12 32s30 6 27-25ZM7 43 32 16M18 30l1-10m3 6 10 1"
+                /></svg
+            ></span>
+            <span class="welcome-path-kind">Entraînement</span
+            ><span class="welcome-path-title">Voie du Shinobi</span>
+            <span class="welcome-path-description"
+              >Séances · Missions · Clans de Konoha</span
+            ><span class="welcome-path-action"
+              >Entrer au village de Konoha →</span
+            >
+          </button>
+        </div>
+        <p class="welcome-note"
+          >Tu peux passer d’une voie à l’autre à tout moment.</p
         >
-        <div class="welcome-note">Santé · Nutrition · Sport · Discipline</div>
       </div>
     </div>
-    <script>
-      (function () {
-        const key = "rpg-life-welcome-seen-v1";
-        const screen = document.getElementById("welcomeScreen");
-        const button = document.getElementById("welcomeEnter");
-        let returning = false;
-        try {
-          returning = appStorage.getItem(key) === "1";
-        } catch (e) {}
-        if (returning) {
-          document.getElementById("welcomeKicker").textContent =
-            "TON AVENTURE CONTINUE";
-          document.getElementById("welcomeMessage").textContent =
-            "Heureux de te retrouver, aventurier. Une nouvelle journée, de nouvelles quêtes et une occasion de progresser.";
-          button.textContent = "Reprendre mon aventure →";
-        }
+    <script id="welcome-two-paths">
+      (() => {
+        const screen = document.getElementById("welcomeScreen"),
+          monarch = document.getElementById("welcomeEnter"),
+          shinobi = document.getElementById("welcomeShinobi");
+        const previousOverflow = document.body.style.overflow;
+        monarch.disabled = true;
+        shinobi.disabled = true;
         screen.hidden = false;
         document.body.style.overflow = "hidden";
-        button.addEventListener("click", function () {
-          try {
-            appStorage.setItem(key, "1");
-          } catch (e) {}
+        function enter(path) {
+          appStorage.setItem("rpg-life-welcome-seen-v1", "1");
           screen.hidden = true;
-          document.body.style.overflow = "";
+          document.body.style.overflow = previousOverflow;
+          if (path === "shinobi") {
+            if (!document.body.classList.contains("shinobi-mode")) {
+              document.querySelector('.tab[data-tab="training"]').click();
+              if (!document.getElementById("shinobiPortal").hidden)
+                document.getElementById("shinobiPortalEnter").click();
+            }
+            sportPage = "village";
+            sportRender();
+          } else {
+            if (document.body.classList.contains("shinobi-mode"))
+              document.querySelector("[data-shinobi-return]").click();
+            window.rpgLifeNavigation.go("dashboard");
+          }
+          window.scrollTo({ top: 0, behavior: "instant" });
+          const heading = document.querySelector(".topbar h1");
+          heading.setAttribute("tabindex", "-1");
+          heading.focus({ preventScroll: true });
+        }
+        monarch.addEventListener("click", () => enter("monarch"));
+        shinobi.addEventListener("click", () => enter("shinobi"));
+        screen.addEventListener("keydown", (e) => {
+          if (e.key === "Tab") {
+            e.preventDefault();
+            (document.activeElement === monarch ? shinobi : monarch).focus();
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            enter("monarch");
+          }
         });
+        const ready = () => {
+          monarch.disabled = false;
+          shinobi.disabled = false;
+          requestAnimationFrame(() => {
+            if (!screen.hidden) monarch.focus();
+          });
+        };
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", ready, { once: true });
+        else ready();
       })();
     </script>
     <style>
@@ -9895,17 +10919,21 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }
         };
         const rank = (l) =>
-          l >= 61
-            ? "S"
-            : l >= 41
-              ? "A"
-              : l >= 26
-                ? "B"
-                : l >= 16
-                  ? "C"
-                  : l >= 6
-                    ? "D"
-                    : "E";
+          l >= 100
+            ? "Roi des monarques"
+            : l >= 81
+              ? "Monarque"
+              : l >= 61
+                ? "S"
+                : l >= 41
+                  ? "A"
+                  : l >= 26
+                    ? "B"
+                    : l >= 16
+                      ? "C"
+                      : l >= 6
+                        ? "D"
+                        : "E";
         const tiers = [
           ["Chasseur novice", "🧍"],
           ["Chasseur confirmé", "🗡️"],
@@ -9987,38 +11015,76 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         const companions = [
           {
             id: "wolf",
-            name: "Loup spectral",
-            icon: "🐺",
+            name: "Tank",
+            icon: "🐻",
             boss: "gate",
-            bonus: "Agilité",
+            bonus: "Vitalité",
+            description:
+              "Ours des glaces devenu soldat d’ombre. Sa masse et sa force en font un combattant de première ligne.",
+            unlock: "Vaincre le boss du Portail de l’Éveil",
           },
           {
             id: "guard",
-            name: "Sentinelle astrale",
+            name: "Iron",
             icon: "🛡️",
             boss: "will",
             bonus: "Vitalité",
+            description:
+              "Chevalier lourd issu du chasseur Kim Chul. Il attire les ennemis et combat avec une grande hache et un bouclier.",
+            unlock: "Vaincre le boss du Donjon de la Volonté",
           },
           {
             id: "mage",
-            name: "Mage des brumes",
+            name: "Tusk",
             icon: "🔮",
             boss: "four",
             bonus: "Perception",
+            description:
+              "Chaman haut-orc, anciennement Kargalgan. Il soutient l’armée avec de puissants sorts et attaques magiques.",
+            unlock: "Vaincre le boss du Sanctuaire des Quatre Voies",
           },
           {
             id: "dragon",
-            name: "Dragon du crépuscule",
-            icon: "🐉",
+            name: "Igris",
+            icon: "⚔️",
             boss: "night",
             bonus: "Force",
+            description:
+              "Le chevalier rouge sang. Épéiste d’une fidélité exemplaire, il compte parmi les soldats d’élite de Jinwoo.",
+            unlock: "Vaincre le boss de la Tour des Ombres",
           },
           {
             id: "crown",
-            name: "Gardien céleste",
+            name: "Kaisel",
+            icon: "🐉",
+            boss: "master",
+            bonus: "Agilité",
+            description:
+              "Wyverne de l’armée des ombres. Elle sert surtout de monture volante à Jinwoo, plutôt que de combattant principal.",
+            unlock: "Vaincre le boss du Trône de l’Ascension",
+          },
+          {
+            id: "beru",
+            name: "Beru",
+            icon: "🐜",
+            boss: "master",
+            bonus: "Force",
+            minLevel: 81,
+            description:
+              "Ombre de l’ancien Roi-Fourmi de Jeju. Rapide, redoutable et dévoué, il est l’un des plus grands soldats de l’armée.",
+            unlock: "Atteindre Monarque, niveau 81, et vaincre le boss final",
+          },
+          {
+            id: "bellion",
+            name: "Bellion",
             icon: "👑",
             boss: "master",
             bonus: "Force",
+            minLevel: 100,
+            description:
+              "Grand Maréchal de l’armée des ombres et ancien lieutenant d’Ashborn. Il domine l’armée avec son épée articulée.",
+            unlock:
+              "Atteindre Roi des monarques, niveau 100, et vaincre le boss final",
           },
         ];
         function victory(id) {
@@ -10028,11 +11094,14 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             return false;
           }
         }
+        function companionUnlocked(c) {
+          return victory(c.boss) && (!c.minLevel || getLevel() >= c.minLevel);
+        }
         function companionMarkup() {
-          return `<details class="v69-fold" data-profile-companions data-v69-fold="profile:companions"><summary>🌑 Compagnons du chasseur</summary><div class="system-console"><p class="system-muted">Vaincs les boss des donjons pour libérer leurs gardiens. Un seul compagnon actif à la fois.</p><div class="system-grid">${companions
-            .map((c) => {
-              let ok = victory(c.boss);
-              return `<div class="system-tile ${ok ? "" : "system-locked"}"><b>${ok ? c.icon : "🔒"} ${ok ? c.name : "Compagnon inconnu"}</b><p class="system-muted">${ok ? "Bonus combat : +2 " + c.bonus : "Vaincre le boss associé"}</p><button class="system-button" data-sys-companion="${c.id}" ${ok ? "" : "disabled"}>${sys.active === c.id ? "Retirer" : "Invoquer"}</button></div>`;
+          return `<details class="v69-fold" data-profile-companions data-v69-fold="profile:companions"><summary>🌑 Armée des ombres · ${companions.filter(companionUnlocked).length}/7</summary><div class="system-console"><div class="system-grid">${companions
+            .map((c, index) => {
+              const ok = companionUnlocked(c);
+              return `<article class="system-tile shadow-card ${ok ? "" : "system-locked"}"><small>OMBRE ${index + 1} / 7 · ${ok ? "EXTRAITE" : "À DÉBLOQUER"}</small><b>${c.icon} ${c.name}</b><p>${c.description}</p><p class="system-muted">${c.unlock}</p><span class="system-chip">Bonus combat : +2 ${c.bonus}</span><button class="system-button" data-sys-companion="${c.id}" ${ok ? "" : "disabled"}>${sys.active === c.id ? "Retirer" : ok ? "Invoquer" : "🔒 Verrouillée"}</button></article>`;
             })
             .join("")}</div></div></details>`;
         }
@@ -10071,27 +11140,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             e
               .filter((x) => x.module === m)
               .reduce((a, x) => a + (Number(x.xp) || 0), 0);
-          let unlocked = companions.filter((c) => victory(c.boss));
+          let unlocked = companions.filter(companionUnlocked);
           if (sys.active && !unlocked.some((c) => c.id === sys.active)) {
             sys.active = null;
             save();
           }
-          root.innerHTML = `<div class="system-console"><span class="system-eyebrow">[ PORTAILS DU SYSTÈME ]</span><h3>🌀 Grades de portails E → S</h3><p class="system-muted">Ces grades décrivent la difficulté des épreuves. Les donjons déjà présents restent la source officielle des validations et récompenses.</p><div class="system-grid">${[
-            ["E", 3],
-            ["D", 5],
-            ["C", 7],
-            ["B", 10],
-            ["A", 14],
-            ["S", 21],
-          ]
-            .map(
-              ([r, d], i) =>
-                `<div class="system-tile ${rank(v.l) < r ? "" : ""}"><span class="system-rank">Rang ${r}</span><b>${d} jours</b><small>${["Initiation", "Exploration", "Endurance", "Maîtrise", "Expert", "Légendaire"][i]}</small></div>`,
-            )
-            .join(
-              "",
-            )}</div><button class="system-button" data-sys-nav="dungeons">Explorer mes donjons →</button></div>
-`;
+          root.replaceChildren();
+          root.hidden = true;
         }
         const section = document.getElementById("rpg");
         if (section) {
@@ -10100,9 +11155,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           section.insertBefore(el, document.getElementById("rpgRoot"));
         }
         window.rpgLifeSystem = {
+          shadowCatalog: () =>
+            companions.map((c) => ({ ...c, unlocked: companionUnlocked(c) })),
           unlockedCompanions: () =>
             companions
-              .filter((c) => victory(c.boss))
+              .filter(companionUnlocked)
               .map((c) => ({ id: c.id, name: c.name })),
           companionMarkup,
           secretMarkup,
@@ -10113,8 +11170,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }),
           getState: () => sys,
           activeCompanion: () =>
-            companions.find((c) => c.id === sys.active && victory(c.boss)) ||
-            null,
+            companions.find(
+              (c) => c.id === sys.active && companionUnlocked(c),
+            ) || null,
         };
         document.addEventListener("click", (e) => {
           const b = e.target.closest(
@@ -10131,7 +11189,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             }
           } else if (b.dataset.sysCompanion) {
             let c = companions.find((c) => c.id === b.dataset.sysCompanion);
-            if (c && victory(c.boss)) {
+            if (c && companionUnlocked(c)) {
               sys.active = sys.active === c.id ? null : c.id;
               save();
               render();
@@ -10144,21 +11202,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }
         });
         document.addEventListener("rpg-life:changed", render);
-        // System-styled welcome, preserving the existing first-run/returning logic.
-        const welcome = document.getElementById("welcomeScreen");
-        if (welcome) {
-          let title = document.getElementById("welcomeTitle"),
-            kicker = document.getElementById("welcomeKicker");
-          if (kicker) kicker.textContent = "[ LE SYSTÈME // CONNEXION ]";
-          if (title) title.textContent = "RPG LIFE · ÉVEIL DU CHASSEUR";
-          let box = welcome.querySelector(".welcome-box");
-          if (box) {
-            let tag = document.createElement("div");
-            tag.className = "system-rank";
-            tag.textContent = "CHASSEUR DE RANG " + rank(getLevel());
-            box.insertBefore(tag, box.querySelector(".welcome-note") || null);
-          }
-        }
         render();
       })();
     </script>
@@ -10224,9 +11267,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         <div class="sg-kicker">✦ TRANSMISSION DU SYSTÈME ✦</div>
         <div class="sg-mark" aria-hidden="true">🍃</div>
         <div class="sg-kicker">UN NOUVEL UNIVERS S'OUVRE</div>
-        <h2 id="shinobiPortalTitle">LA VOIE DU SHINOBI</h2>
+        <h2 id="shinobiPortalTitle">BIENVENUE AU VILLAGE DE KONOHA</h2>
         <p class="sg-sub"
-          >Tu franchis les portes du Village Caché. Ici, chaque entraînement
+          >Tu franchis les portes du village de Konoha. Ici, chaque entraînement
           renforce ton chakra, chaque mission forge ton nindô et chaque épreuve
           te rapproche du prochain grade.</p
         >
@@ -10236,7 +11279,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         >
         <div class="sg-actions"
           ><button type="button" class="sg-start" id="shinobiPortalEnter"
-            >⚔ Entrer dans le Village Caché →</button
+            >⚔ Entrer dans le village de Konoha →</button
           ><button type="button" class="sg-back" id="shinobiPortalCancel"
             >← Retour à mon aventure</button
           ></div
@@ -10301,8 +11344,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             allowNavigation = false;
           }
           const heading = document.querySelector(".topbar h1");
-          if (heading)
-            heading.textContent = "🍃 VILLAGE CACHÉ · VOIE DU SHINOBI";
+          if (heading) heading.textContent = "🍃 KONOHA";
         }
         function leaveVillage() {
           document.body.classList.remove("shinobi-mode");
@@ -11307,13 +12349,31 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           for (const x of window.rpgLifeSystem?.unlockedCompanions() || [])
             add(
               "companion:" + x.id,
-              "Nouveau compagnon",
-              x.name + " rejoint tes compagnons disponibles.",
+              "Nouvelle ombre",
+              x.name + " rejoint ton armée.",
               "rpg",
               "companion",
             );
+          for (const message of window.rpgClanCampaign?.notices() || [])
+            add(
+              message.id,
+              message.title,
+              message.body,
+              "training",
+              "training",
+              "clan",
+            );
           const sl = sportLevel(),
             count = sport.sessions.length;
+          if (sl.xp >= 1000)
+            add(
+              "shinobi-clan-choice",
+              "Choix du clan débloqué",
+              "Tu es Chûnin : choisis maintenant ton clan au village de Konoha.",
+              "training",
+              "training",
+              "clan",
+            );
           if (sl.lv > 1)
             add(
               "sport:" + sl.lv,
@@ -11362,9 +12422,18 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                   " · " +
                   safe(new Date(x.at).toLocaleDateString("fr-FR")) +
                   "</small><h3>" +
-                  safe(x.title) +
+                  safe(
+                    x.id.startsWith("companion:") ? "Nouvelle ombre" : x.title,
+                  ) +
                   "</h3><p>" +
-                  safe(x.body) +
+                  safe(
+                    x.id.startsWith("companion:")
+                      ? (window.rpgLifeSystem
+                          ?.shadowCatalog()
+                          .find((c) => c.id === x.id.slice(10))?.name ||
+                          "Une ombre") + " rejoint ton armée."
+                      : x.body,
+                  ) +
                   '</p><button type="button" data-inbox-open="' +
                   safe(x.id) +
                   '">Voir →</button></article>',
@@ -11463,8 +12532,15 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               if (!document.getElementById("shinobiPortal").hidden)
                 document.getElementById("shinobiPortalEnter").click();
             }
-            sportPage = item.kind === "arc" ? "missions" : "progress";
+            sportPage =
+              item.target === "clan"
+                ? "village"
+                : item.kind === "arc"
+                  ? "missions"
+                  : "progress";
             sportRender();
+            if (item.target === "clan")
+              document.querySelector("[data-clan-picker]")?.click();
           } else {
             if (document.body.classList.contains("shinobi-mode"))
               document.querySelector("[data-shinobi-return]").click();
@@ -11532,6 +12608,1822 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           getState: () => JSON.parse(JSON.stringify(state)),
         };
         scan(false);
+      })();</script
+    ><script id="konoha-clans-script">
+      (() => {
+        "use strict";
+        const KEY_CLAN = "rpg-life-shinobi-clan-v1";
+        const clans = [
+          {
+            id: "uchiwa",
+            name: "Uchiwa",
+            icon: "🔥",
+            style: "Le regard du Sharingan",
+            color: "#ef6b7b",
+            desc: "Clan fondateur de Konoha, célèbre pour le Sharingan et les techniques de feu.",
+            members: "Sasuke · Itachi · Madara",
+          },
+          {
+            id: "senju",
+            name: "Senju",
+            icon: "🌳",
+            style: "La volonté des fondateurs",
+            color: "#7cc3a2",
+            desc: "Clan fondateur aux arts ninja variés. Hashirama est célèbre pour son Mokuton.",
+            members: "Hashirama · Tobirama · Tsunade",
+          },
+          {
+            id: "hyuga",
+            name: "Hyûga",
+            icon: "👁️",
+            style: "La précision du Byakugan",
+            color: "#d5c4ff",
+            desc: "Le Byakugan et le Jûken caractérisent ce clan, organisé en branches principale et secondaire.",
+            members: "Hinata · Neji · Hiashi",
+          },
+          {
+            id: "uzumaki",
+            name: "Uzumaki",
+            icon: "🌀",
+            style: "La force des liens",
+            color: "#ffa775",
+            desc: "Originaire d’Uzushio, cette lignée est réputée pour sa vitalité et ses techniques de scellement.",
+            members: "Naruto · Kushina · Mito",
+          },
+          {
+            id: "sarutobi",
+            name: "Sarutobi",
+            icon: "🐒",
+            style: "La Volonté du Feu",
+            color: "#f2cb7b",
+            desc: "Clan attaché à Konoha, dont est issu Hiruzen, le troisième Hokage.",
+            members: "Hiruzen · Asuma · Konohamaru",
+          },
+          {
+            id: "nara",
+            name: "Nara",
+            icon: "🌑",
+            style: "La stratégie des ombres",
+            color: "#95bad2",
+            desc: "Spécialistes des techniques d’ombre. Alliés des Akimichi et Yamanaka dans Ino-Shika-Chô.",
+            members: "Shikamaru · Shikaku",
+          },
+          {
+            id: "akimichi",
+            name: "Akimichi",
+            icon: "🦋",
+            style: "La puissance du papillon",
+            color: "#e993c6",
+            desc: "Techniques de décuplement du corps et transformation des calories en chakra. Membre d’Ino-Shika-Chô.",
+            members: "Chôji · Chôza",
+          },
+          {
+            id: "yamanaka",
+            name: "Yamanaka",
+            icon: "🌸",
+            style: "L’esprit d’équipe",
+            color: "#c6abff",
+            desc: "Techniques mentales, communication et transfert d’esprit. Membre d’Ino-Shika-Chô.",
+            members: "Ino · Inoichi",
+          },
+          {
+            id: "inuzuka",
+            name: "Inuzuka",
+            icon: "🐾",
+            style: "Le lien avec les ninken",
+            color: "#dbb18b",
+            desc: "Combattent aux côtés de leurs chiens ninja, avec flair et coordination.",
+            members: "Kiba · Hana · Tsume",
+          },
+          {
+            id: "aburame",
+            name: "Aburame",
+            icon: "🪲",
+            style: "La maîtrise des insectes",
+            color: "#a5c59b",
+            desc: "Utilisent des insectes vivant en symbiose avec leur corps pour leurs techniques.",
+            members: "Shino · Shibi",
+          },
+          {
+            id: "otsutsuki",
+            name: "Ôtsutsuki",
+            icon: "🌙",
+            style: "L’héritage céleste",
+            color: "#e3e9ff",
+            desc: "Lignée ancestrale liée aux origines du chakra. Option de personnage légendaire, extérieure aux clans de Konoha.",
+            members: "Kaguya · Hagoromo",
+            special: true,
+          },
+        ];
+        let state = { version: 1, clan: null },
+          protectedState = false,
+          pickerOpen = false;
+        try {
+          const raw = appStorage.getItem(KEY_CLAN);
+          protectedState =
+            raw === null && localStorage.getItem(KEY_CLAN) !== null;
+          if (raw) state = JSON.parse(raw);
+        } catch {
+          protectedState = true;
+        }
+        const eligible = () => sportLevel().xp >= 1000;
+        const chosen = () => clans.find((c) => c.id === state.clan) || null;
+        function render() {
+          const root = document.getElementById("trainingRoot");
+          if (!root) return;
+          root
+            .querySelectorAll("[data-shinobi-clan-ui]")
+            .forEach((x) => x.remove());
+          const selected = chosen(),
+            ready = eligible(),
+            xp = sportLevel().xp;
+          const hero = root.querySelector(".training-hero");
+          if (hero) {
+            const badge = document.createElement("button");
+            badge.type = "button";
+            badge.dataset.shinobiClanUi = "badge";
+            badge.dataset.clanPicker = "";
+            badge.className = "konoha-clan-badge";
+            badge.textContent = selected
+              ? selected.icon + " Clan " + selected.name
+              : ready
+                ? "🍃 Chûnin · Choisis ton clan"
+                : "🔒 Clan · Déblocage au grade Chûnin";
+            hero.append(badge);
+          }
+          if (!["village", "progress"].includes(sportPage)) return;
+          const box = document.createElement("section");
+          box.dataset.shinobiClanUi = "panel";
+          box.className = "sport-card konoha-clans";
+          box.innerHTML =
+            "<h2>🍃 Mon clan de Konoha</h2><p>" +
+            (selected
+              ? "<strong>" +
+                selected.icon +
+                " " +
+                selected.name +
+                "</strong> · " +
+                selected.style
+              : ready
+                ? "Tu as atteint le grade Chûnin. Choisis la lignée qui accompagnera ton nindô."
+                : "Le choix d’un clan se débloque au grade Chûnin : 1 000 points de maîtrise sportive, soit le niveau sportif 6.") +
+            "</p>" +
+            (!ready
+              ? '<p class="sport-muted">' +
+                Math.min(1000, xp) +
+                " / 1 000 points · encore " +
+                Math.max(0, 1000 - xp) +
+                " points</p>"
+              : "") +
+            '<details class="konoha-clan-picker" ' +
+            (pickerOpen || (ready && !selected) ? "open" : "") +
+            "><summary>" +
+            (selected
+              ? "Découvrir les clans / changer de clan"
+              : "Découvrir les clans") +
+            '</summary><p class="sport-muted">Une identité de personnage : aucun bonus d’XP, aucune modification des entraînements. Tu peux changer de clan à partir du grade Chûnin. Les Ôtsutsuki sont proposés comme lignée légendaire hors Konoha.</p><div class="konoha-clan-grid">' +
+            clans
+              .map(
+                (c) =>
+                  '<article class="konoha-clan-card ' +
+                  (selected?.id === c.id ? "chosen" : "") +
+                  '" style="--clan-color:' +
+                  c.color +
+                  '"><span aria-hidden="true">' +
+                  c.icon +
+                  "</span><h3>" +
+                  c.name +
+                  "</h3><b>" +
+                  c.style +
+                  "</b><p>" +
+                  c.desc +
+                  "</p><small>" +
+                  c.members +
+                  '</small><button type="button" data-clan-select="' +
+                  c.id +
+                  '" ' +
+                  (!ready || protectedState || selected?.id === c.id
+                    ? "disabled"
+                    : "") +
+                  ">" +
+                  (selected?.id === c.id
+                    ? "✓ Ton clan"
+                    : ready
+                      ? "Choisir " + c.name
+                      : "🔒 Grade Chûnin requis") +
+                  "</button></article>",
+              )
+              .join("") +
+            '</div></details><p class="sport-muted" role="status" id="clanSaveStatus">' +
+            (protectedState
+              ? "La sauvegarde du clan est illisible. Les données originales sont conservées. Exporte une sauvegarde avant réparation."
+              : "") +
+            "</p>";
+          const nav = root.querySelector(".training-nav");
+          if (nav) nav.after(box);
+          else root.append(box);
+        }
+        document.addEventListener(
+          "toggle",
+          (e) => {
+            if (
+              e.target.matches?.(".konoha-clan-picker") &&
+              e.target.isConnected
+            )
+              pickerOpen = e.target.open;
+          },
+          true,
+        );
+        document.addEventListener("click", (e) => {
+          if (e.target.closest("[data-clan-picker]")) {
+            sportPage = "village";
+            pickerOpen = true;
+            sportRender();
+            document
+              .querySelector(".konoha-clans")
+              ?.scrollIntoView({ block: "start", behavior: "smooth" });
+            return;
+          }
+          const button = e.target.closest("[data-clan-select]");
+          if (!button || !eligible() || protectedState) return;
+          const clan = clans.find((c) => c.id === button.dataset.clanSelect);
+          if (!clan || clan.id === state.clan) return;
+          if (
+            !confirm(
+              (state.clan
+                ? "Changer de clan pour rejoindre "
+                : "Rejoindre le clan ") +
+                clan.name +
+                " ? Tes XP et tes séances restent inchangés.",
+            )
+          )
+            return;
+          const next = { version: 1, clan: clan.id };
+          try {
+            appStorage.commit({ [KEY_CLAN]: JSON.stringify(next) });
+            state = next;
+            pickerOpen = false;
+            render();
+            document.dispatchEvent(new Event("rpg-clan:changed"));
+            queueToast(
+              clan.icon,
+              "CLAN " + clan.name.toUpperCase(),
+              "Bienvenue dans ton clan ! " + clan.style,
+            );
+          } catch (error) {
+            document.getElementById("clanSaveStatus").textContent =
+              "Choix non enregistré : " + error.message;
+          }
+        });
+        const previous = sportRender;
+        sportRender = function (...args) {
+          const result = previous(...args);
+          render();
+          return result;
+        };
+        window.rpgClans = {
+          render,
+          eligible,
+          getState: () => ({ ...state }),
+          catalog: () => clans.map((c) => ({ ...c })),
+        };
+        render();
+      })();</script
+    ><script id="clan-campaign-script">
+      (() => {
+        "use strict";
+        const CLAN_STORIES = {
+          uchiwa: {
+            mentor: "Itachi",
+            technique: "Sharingan",
+            symbol: "◉",
+            title: "Veilleur des flammes",
+            chapters: [
+              [
+                "Le regard impatient",
+                "Étincelle rouge",
+                "Tu fixes ton reflet comme si le Sharingan allait apparaître avant ta première série.",
+                "Tu comptes t’entraîner ou attendre que le miroir fasse le travail ?",
+                "Je vérifiais juste ma concentration.",
+                "Alors concentre-toi sur la première série.",
+              ],
+              [
+                "Une flamme qui tient",
+                "Premier cercle",
+                "Tu reviens au terrain. Itachi remarque surtout que tu es revenu un autre jour.",
+                "Une grosse séance ne remplace pas les suivantes.",
+                "Tu pourrais au moins dire que la première était bien.",
+                "Elle était bien. Celle-ci reste à faire.",
+              ],
+              [
+                "Voir ce que tu fais",
+                "Regard précis",
+                "Tu montres ton carnet. Itachi compare tes séries, sans toucher aux charges.",
+                "Là, tu sais ce que tu as fait. Tu peux choisir la suite.",
+                "C’est moins spectaculaire qu’un pouvoir secret.",
+                "Et beaucoup plus utile qu’un souvenir approximatif.",
+              ],
+              [
+                "Garder la tête froide",
+                "Flamme maîtrisée",
+                "Un élève te propose une compétition. Tu termines tranquillement ce que tu avais prévu.",
+                "Tu n’as pas besoin de répondre à chaque défi.",
+                "Même quand il parle très fort ?",
+                "Surtout quand il parle très fort.",
+              ],
+              [
+                "La force tranquille",
+                "Sharingan du veilleur",
+                "Itachi te confie la surveillance du terrain. Cette fois, les nouveaux viennent te demander conseil.",
+                "Que vas-tu leur apprendre ?",
+                "À noter leurs séances. Et à arrêter de fixer le miroir.",
+                "Tu as donc retenu quelque chose.",
+              ],
+            ],
+          },
+          senju: {
+            mentor: "Hashirama",
+            technique: "Arbre de la Volonté",
+            symbol: "♧",
+            title: "Gardien des racines",
+            chapters: [
+              [
+                "Planter la première graine",
+                "Graine",
+                "Hashirama t’attend près d’un terrain couvert de jeunes pousses.",
+                "On commence petit.",
+                "Je pensais avoir droit à une forêt.",
+                "Tu voulais aussi finir ton entraînement avant de commencer ?",
+              ],
+              [
+                "Revenir arroser",
+                "Racines",
+                "À ton retour, une pousse tient droite. Hashirama vérifie ton carnet avant de la désigner.",
+                "Tu as pris le temps de revenir.",
+                "Et elle, elle a poussé sans faire de séries.",
+                "Elle a son programme. Toi, tu as le tien.",
+              ],
+              [
+                "Des appuis solides",
+                "Jeune tronc",
+                "Vous examinez ce que tu as réellement enregistré. Hashirama barre une estimation inventée.",
+                "Si tu ne sais plus, tu ne sais plus.",
+                "Je pensais arrondir un peu.",
+                "Une branche imaginaire ne porte personne.",
+              ],
+              [
+                "Traverser les saisons",
+                "Branches",
+                "Il pleut sur le terrain. Vous adaptez la séance au lieu d’essayer de sauver ton plan à tout prix.",
+                "Le plan doit t’aider, pas te coincer.",
+                "Tu dis ça parce que ton terrain est trempé ?",
+                "Je dis ça parce que tu t’entêtes sous la gouttière.",
+              ],
+              [
+                "Un abri pour les autres",
+                "Arbre protecteur",
+                "Les élèves se rassemblent sous l’arbre du terrain. Tu aides à préparer l’espace sans chercher à passer devant.",
+                "Tu vois ce qu’on a construit ?",
+                "Oui. Et enfin un endroit à l’ombre.",
+                "Voilà quelqu’un qui comprend les priorités.",
+              ],
+            ],
+          },
+          hyuga: {
+            mentor: "Hinata",
+            technique: "Regard du Byakugan",
+            symbol: "◎",
+            title: "Sentinelle du regard clair",
+            chapters: [
+              [
+                "Regarder avant de foncer",
+                "Lueur claire",
+                "Hinata te demande ton programme. Tu réponds d’abord avec ce que fait la personne à côté.",
+                "Et toi, qu’est-ce que tu avais prévu ?",
+                "Je voulais voir si son idée était meilleure.",
+                "Tu peux regarder sans changer de plan toutes les deux minutes.",
+              ],
+              [
+                "Le bon rythme",
+                "Cercle pâle",
+                "Vous retrouvez le terrain un autre jour. Tu connais déjà tes repères.",
+                "C’est plus simple quand tu sais pourquoi tu viens.",
+                "Je viens aussi parce qu’on avait rendez-vous.",
+                "C’est une très bonne raison. Maintenant, on commence.",
+              ],
+              [
+                "Un carnet lisible",
+                "Vision précise",
+                "Hinata peut lire ta séance sans te demander de traduire trois abréviations.",
+                "Je comprends enfin cette ligne.",
+                "Tu exagères. Elle était presque lisible.",
+                "Tu avais écrit “pareil” à côté d’une page vide.",
+              ],
+              [
+                "Ne pas se comparer",
+                "Horizon clair",
+                "Tu hésites devant la performance d’un autre élève. Hinata te montre ta propre progression.",
+                "Tu n’as pas commencé au même endroit.",
+                "Je sais, mais c’est tentant de regarder.",
+                "Regarde aussi le chemin que tu as fait.",
+              ],
+              [
+                "Voir le chemin",
+                "Byakugan de la sentinelle",
+                "Un nouvel élève te demande comment tout réussir dès sa première semaine.",
+                "Qu’est-ce que tu lui réponds ?",
+                "De commencer par une séance qu’il peut suivre.",
+                "Et de revenir. C’est comme ça que tu es arrivé ici.",
+              ],
+            ],
+          },
+          uzumaki: {
+            mentor: "Naruto",
+            technique: "Spirale des liens",
+            symbol: "🌀",
+            title: "Héritier de la spirale",
+            chapters: [
+              [
+                "L’entrée qui fait du bruit",
+                "Premier tourbillon",
+                "Naruto arrive en courant, puis réalise qu’il a oublié son carnet.",
+                "Je reviens tout de suite !",
+                "Le maître de la régularité, c’est toi ?",
+                "La séance commence quand je reviens. Ne profite pas de ça.",
+              ],
+              [
+                "Tenir sa parole",
+                "Spirale vive",
+                "Vous êtes tous les deux à l’heure pour la séance suivante. Naruto a cette fois un carnet.",
+                "Tu vois, je peux être organisé.",
+                "Tu as écrit la date ?",
+                "J’allais le faire. Tu peux arrêter de sourire.",
+              ],
+              [
+                "Se souvenir pour avancer",
+                "Sceau du suivi",
+                "Tu notes ce que tu as fait pendant que Naruto essaie de le retenir de tête.",
+                "J’ai une excellente mémoire.",
+                "Tu avais oublié ton carnet la première fois.",
+                "Justement. C’était un événement exceptionnel.",
+              ],
+              [
+                "Les jours moins faciles",
+                "Spirale stable",
+                "La motivation est plus basse. Vous faites une séance adaptée, puis rentrez sans vous promettre l’impossible.",
+                "Aujourd’hui, c’était moins impressionnant.",
+                "Mais on a fait ce qu’on pouvait.",
+                "Et on n’a pas besoin de prétendre le contraire.",
+              ],
+              [
+                "Une place pour les autres",
+                "Spirale des compagnons",
+                "Naruto invite un élève à rejoindre le terrain. Tu lui fais de la place à côté de toi.",
+                "Tu veux lui expliquer comment on commence ?",
+                "Oui. D’abord, on vérifie qu’on a son carnet.",
+                "Tu vas me la ressortir longtemps, celle-là ?",
+              ],
+            ],
+          },
+          sarutobi: {
+            mentor: "Asuma",
+            technique: "Braise de la Volonté",
+            symbol: "🔥",
+            title: "Porteur de la braise",
+            chapters: [
+              [
+                "Pas de grand discours",
+                "Braise",
+                "Tu arrives avec un discours sur tes ambitions. Asuma regarde l’heure.",
+                "Tu me racontes ça après la séance.",
+                "J’avais préparé une introduction.",
+                "Garde-la. On a déjà perdu deux minutes.",
+              ],
+              [
+                "Être au rendez-vous",
+                "Flamme régulière",
+                "Asuma te retrouve au terrain un autre jour. Il te salue sans cérémonie.",
+                "Content de te revoir.",
+                "Pas de discours aujourd’hui ?",
+                "Tu voulais vraiment recommencer ton introduction ?",
+              ],
+              [
+                "Dire ce qui est fait",
+                "Braise claire",
+                "Ton carnet ne raconte ni exploit inventé ni excuse interminable.",
+                "C’est clair. On peut travailler avec ça.",
+                "Tu ne trouves pas ça trop simple ?",
+                "Je n’ai jamais demandé un roman.",
+              ],
+              [
+                "Faire sa part",
+                "Feu partagé",
+                "Vous préparez le terrain pour les suivants. Tu ranges avant qu’Asuma te le demande.",
+                "Ça aussi, ça compte pour le groupe.",
+                "Tu vas noter le rangement dans mon programme ?",
+                "Non. Je vais surtout arrêter de le faire à ta place.",
+              ],
+              [
+                "La flamme reste",
+                "Volonté du gardien",
+                "Asuma te laisse accueillir les nouveaux pendant qu’il installe le matériel.",
+                "Tu sais quoi leur dire ?",
+                "On discute après la séance.",
+                "Très bien. Tu as même raccourci mon discours.",
+              ],
+            ],
+          },
+          nara: {
+            mentor: "Shikamaru",
+            technique: "Ombre du stratège",
+            symbol: "◒",
+            title: "Stratège des ombres",
+            chapters: [
+              [
+                "Le plan le plus court",
+                "Ombre légère",
+                "Tu présentes trois programmes possibles. Shikamaru en retourne deux.",
+                "Tu peux commencer par celui que tu vas vraiment suivre.",
+                "Tu n’as même pas lu les autres.",
+                "Tu m’as déjà dit que tu n’avais pas le temps de les faire.",
+              ],
+              [
+                "Un plan qui survit",
+                "Ombre stable",
+                "Tu reviens après avoir ajusté ton agenda. La séance tient enfin dans ta journée.",
+                "Tu vois ? Ça fonctionne sans tout réorganiser.",
+                "J’ai dû supprimer une complication.",
+                "Une seule ? Tu fais des progrès.",
+              ],
+              [
+                "Des informations utiles",
+                "Ombre précise",
+                "Vous relisez tes séances au lieu de deviner ce qui a marché.",
+                "Là, je peux t’aider à choisir.",
+                "Avec juste ces quelques lignes ?",
+                "C’est mieux que quinze minutes de “je crois”.",
+              ],
+              [
+                "Prévoir une solution simple",
+                "Ombre déployée",
+                "Une journée chargée approche. Tu choisis une séance réaliste plutôt qu’un plan héroïque.",
+                "Tu as prévu de pouvoir la faire. C’est déjà bien.",
+                "Tu trouves ça ambitieux ?",
+                "Je trouve ça faisable. Ça m’intéresse davantage.",
+              ],
+              [
+                "Laisser le plan respirer",
+                "Ombre du maître stratège",
+                "Un élève te demande un programme parfait. Shikamaru attend ta réponse.",
+                "Alors, ton meilleur conseil ?",
+                "Un programme qu’on suit vaut mieux qu’un programme qu’on admire.",
+                "Bien. Maintenant, on peut arrêter cette réunion.",
+              ],
+            ],
+          },
+          akimichi: {
+            mentor: "Chôji",
+            technique: "Ailes du papillon",
+            symbol: "🦋",
+            title: "Gardien des ailes",
+            chapters: [
+              [
+                "Trouver sa place",
+                "Cocon",
+                "Tu regardes les autres avant d’oser commencer. Chôji décale son sac pour te faire une place.",
+                "Tu peux venir ici.",
+                "Je ne suis pas encore au niveau.",
+                "On t’a demandé de commencer, pas de leur ressembler.",
+              ],
+              [
+                "Grandir à son rythme",
+                "Première aile",
+                "Tu reviens avec un plan plus raisonnable que celui de ta première visite.",
+                "Celui-là te convient mieux ?",
+                "Oui. J’ai arrêté de vouloir tout faire.",
+                "Il t’en reste déjà assez pour aujourd’hui.",
+              ],
+              [
+                "Reconnaître ses efforts",
+                "Ailes dessinées",
+                "Chôji lit ton carnet et te demande ce que tu as ressenti, sans comparer tes chiffres aux siens.",
+                "C’est ton entraînement.",
+                "Je pensais que mes chiffres étaient trop petits pour les noter.",
+                "Ils ne vont pas devenir plus utiles si tu les caches.",
+              ],
+              [
+                "La force ne presse pas",
+                "Ailes ouvertes",
+                "Tu as une journée moins facile. Vous adaptez et prenez le temps de récupérer.",
+                "On peut ralentir sans abandonner.",
+                "Tu n’as pas peur de perdre du temps ?",
+                "J’en perds davantage quand je fais n’importe quoi.",
+              ],
+              [
+                "Prendre son envol",
+                "Papillon du gardien",
+                "Tu accueilles un élève qui hésite au bord du terrain, comme toi à ton arrivée.",
+                "Tu le reconnais, ce regard ?",
+                "Oui. Je vais lui faire une place.",
+                "Parfait. Et laisse aussi de la place pour mon sac.",
+              ],
+            ],
+          },
+          yamanaka: {
+            mentor: "Ino",
+            technique: "Lien des esprits",
+            symbol: "🌸",
+            title: "Gardien des liens",
+            chapters: [
+              [
+                "Dire les choses",
+                "Premier lien",
+                "Ino te demande ce que tu veux travailler. Tu réponds “un peu tout”.",
+                "Choisis quelque chose de précis.",
+                "Tu ne peux pas le deviner ?",
+                "Je peux surtout attendre que tu me répondes.",
+              ],
+              [
+                "Un message clair",
+                "Lien stable",
+                "Vous vous retrouvez au terrain avec un objectif simple pour la séance.",
+                "C’est déjà beaucoup plus clair.",
+                "J’ai répété la phrase en venant.",
+                "Tu aurais aussi pu l’écrire.",
+              ],
+              [
+                "Transmettre sans deviner",
+                "Lien précis",
+                "Ton carnet permet d’expliquer ta séance sans inventer les détails manquants.",
+                "Là, je comprends ce que tu as fait.",
+                "J’ai même mis les unités.",
+                "Tu dis ça comme si c’était un cadeau.",
+              ],
+              [
+                "Écouter aussi",
+                "Réseau des liens",
+                "Un partenaire te dit qu’il est fatigué. Tu adaptes le plan avec lui.",
+                "Tu lui as demandé ce qui lui convenait ?",
+                "Oui. Ça nous a évité de discuter pour rien.",
+                "Tu vois ? Écouter, ça fait gagner du temps.",
+              ],
+              [
+                "Un groupe qui se comprend",
+                "Lien du gardien",
+                "Ino te confie l’accueil des nouveaux. Personne ne repart en se demandant quoi faire.",
+                "Tu leur as tout expliqué ?",
+                "Assez pour commencer. Le reste viendra après.",
+                "Bien. On n’avait pas besoin d’un discours de deux heures.",
+              ],
+            ],
+          },
+          inuzuka: {
+            mentor: "Kiba",
+            technique: "Trace des crocs",
+            symbol: "🐾",
+            title: "Compagnon des crocs",
+            chapters: [
+              [
+                "Suivre la piste",
+                "Première trace",
+                "Kiba arrive avec Akamaru. Tu demandes lequel des deux dirige la séance.",
+                "Moi, évidemment.",
+                "Il n’a pas l’air d’accord.",
+                "Il veut surtout qu’on commence au lieu de parler.",
+              ],
+              [
+                "Revenir sur le terrain",
+                "Piste retrouvée",
+                "Akamaru te reconnaît avant Kiba. Tu as retrouvé le chemin sans hésiter.",
+                "Tu sais où aller, maintenant.",
+                "Votre chien m’a retrouvé avant toi.",
+                "Il est meilleur pour certaines choses. Ne lui dis pas trop.",
+              ],
+              [
+                "Ne pas perdre la trace",
+                "Trace nette",
+                "Tu notes tes séries avant de suivre Kiba vers le prochain exercice.",
+                "Tu prends encore des notes ?",
+                "Oui. Toi, tu as Akamaru pour te rappeler à l’ordre.",
+                "C’est faux. Enfin… pas toujours.",
+              ],
+              [
+                "Avancer ensemble",
+                "Crocs coordonnés",
+                "Kiba part trop vite, puis vous retrouvez un rythme qui convient à chacun.",
+                "Tu pouvais me dire de ralentir.",
+                "Je viens de le faire trois fois.",
+                "D’accord. Cette fois, j’écoute.",
+              ],
+              [
+                "La meute tient bon",
+                "Sillage de la meute",
+                "Un nouveau arrive au terrain. Akamaru va l’accueillir avant tout le monde.",
+                "On devait faire ça ensemble.",
+                "Il a pris de l’avance.",
+                "Ça arrive souvent. Suivons-le, pour une fois.",
+              ],
+            ],
+          },
+          aburame: {
+            mentor: "Shino",
+            technique: "Essaim du veilleur",
+            symbol: "🪲",
+            title: "Veilleur de l’essaim",
+            chapters: [
+              [
+                "Un début discret",
+                "Premier éclaireur",
+                "Shino t’attend en silence. Tu commences à parler pour remplir le vide.",
+                "Tu peux aussi commencer ta séance.",
+                "Je pensais qu’il fallait une présentation.",
+                "Tu viens de m’en faire deux.",
+              ],
+              [
+                "La constance se voit",
+                "Essaim naissant",
+                "Tu reviens au terrain. Shino a remarqué tes passages, même sans te saluer à chaque fois.",
+                "Je savais que tu reviendrais.",
+                "Tu aurais pu le dire.",
+                "Je viens de le faire.",
+              ],
+              [
+                "Observer les détails",
+                "Essaim attentif",
+                "Vous comparez tes séances enregistrées. Une petite différence devient enfin visible.",
+                "Sans les notes, tu ne l’aurais pas remarquée.",
+                "Tu regardes vraiment toutes les lignes ?",
+                "C’est généralement là que sont les informations.",
+              ],
+              [
+                "Rester patient",
+                "Essaim organisé",
+                "Tu veux accélérer parce que les progrès te semblent discrets. Shino te laisse regarder ton historique.",
+                "Prends le temps de comparer.",
+                "C’est vrai. Je ne faisais pas ça au début.",
+                "La discrétion n’empêche pas les choses d’avancer.",
+              ],
+              [
+                "Être là quand il faut",
+                "Essaim du gardien",
+                "Les nouveaux savent désormais te trouver quand ils ont une question. Shino ne paraît pas surpris.",
+                "Tu n’as rien à ajouter ?",
+                "Tu es devenu fiable. C’est une bonne chose.",
+                "Merci. Ça valait le silence avant.",
+              ],
+            ],
+          },
+          otsutsuki: {
+            mentor: "Hagoromo",
+            technique: "Orbite céleste",
+            symbol: "☾",
+            title: "Veilleur de l’orbite",
+            chapters: [
+              [
+                "Revenir sur terre",
+                "Éclat lointain",
+                "Tu arrives en demandant si cette lignée donne immédiatement des pouvoirs extraordinaires.",
+                "Ton entraînement commence comme celui des autres.",
+                "Même avec un nom pareil ?",
+                "Le nom ne remplit pas ton carnet.",
+              ],
+              [
+                "L’orbite régulière",
+                "Premier cercle",
+                "Hagoromo te retrouve au terrain, un autre jour, sans apparition spectaculaire.",
+                "Tu t’attendais à quoi ?",
+                "Un peu plus de lumière, peut-être.",
+                "Tu as trouvé le terrain. C’est suffisant.",
+              ],
+              [
+                "Un ciel lisible",
+                "Constellation",
+                "Vous regardez les séances que tu as réellement consignées. Hagoromo pointe une ligne vide.",
+                "Et ici ?",
+                "J’espérais que tu saurais ce que j’avais fait.",
+                "Je te laisse déjà assez de travail sans inventer tes souvenirs.",
+              ],
+              [
+                "Garder les pieds au sol",
+                "Orbite stable",
+                "Tu choisis de respecter ton rythme au lieu de te comparer à une légende.",
+                "C’est une décision raisonnable.",
+                "Moins impressionnante que mon projet initial.",
+                "Ton projet initial ne tenait pas dans une journée.",
+              ],
+              [
+                "Une lumière à partager",
+                "Orbite du veilleur",
+                "Un nouvel élève te demande ce que cette lignée t’a changé. Hagoromo attend ta réponse.",
+                "Alors ?",
+                "Je sais mieux revenir, noter et continuer.",
+                "C’est déjà une réponse qui tient debout.",
+              ],
+            ],
+          },
+        };
+
+        const KEY = "rpg-life-clan-campaign-v1";
+        const missions = [
+          {
+            sessions: 1,
+            days: 1,
+            logs: 0,
+            text: "Enregistrer une nouvelle séance avec ce clan actif.",
+          },
+          {
+            sessions: 3,
+            days: 2,
+            logs: 0,
+            text: "Cumuler 3 séances sur au moins 2 jours différents avec ce clan.",
+          },
+          {
+            sessions: 4,
+            days: 2,
+            logs: 2,
+            text: "Cumuler 4 séances et au moins 2 séances renseignées : série cochée avec répétitions, ou durée pour un autre sport.",
+          },
+          {
+            sessions: 6,
+            days: 4,
+            logs: 2,
+            text: "Cumuler 6 séances sur au moins 4 jours différents.",
+          },
+          {
+            sessions: 10,
+            days: 7,
+            logs: 2,
+            text: "Cumuler 10 séances sur au moins 7 jours différents.",
+          },
+        ];
+        let state = { version: 1, clans: {} },
+          protectedState = false,
+          busy = false;
+        let observed = new Set(sport.sessions.map((s) => s.id));
+        const sceneViewed = {},
+          safe = (v) =>
+            String(v).replace(
+              /[&<>"']/g,
+              (c) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                })[c],
+            );
+        try {
+          const raw = appStorage.getItem(KEY);
+          protectedState = raw === null && localStorage.getItem(KEY) !== null;
+          if (raw) state = JSON.parse(raw);
+        } catch {
+          protectedState = true;
+        }
+        const active = () => window.rpgClans?.getState().clan;
+        const copy = () => JSON.parse(JSON.stringify(state));
+        function persist(next) {
+          if (protectedState) return false;
+          try {
+            appStorage.commit({ [KEY]: JSON.stringify(next) });
+            state = next;
+            return true;
+          } catch (e) {
+            const el = document.getElementById("clanCampaignStatus");
+            if (el)
+              el.textContent = "Progression non enregistrée : " + e.message;
+            return false;
+          }
+        }
+        const CLAN_FOCUS = {
+          uchiwa: [
+            "records",
+            "records",
+            "repRecords",
+            "repeatSessions",
+            "records",
+          ],
+          senju: [
+            "newExercises",
+            "exerciseVariety",
+            "newExercises",
+            "repeatSessions",
+            "exerciseVariety",
+          ],
+          hyuga: [
+            "logs",
+            "repeatSessions",
+            "logs",
+            "repRecords",
+            "repeatSessions",
+          ],
+          uzumaki: [
+            "newSports",
+            "sportVariety",
+            "newExercises",
+            "sportVariety",
+            "newSports",
+          ],
+          sarutobi: [
+            "logs",
+            "sportVariety",
+            "repeatSessions",
+            "exerciseVariety",
+            "sportVariety",
+          ],
+          nara: [
+            "repeatSessions",
+            "logs",
+            "repeatSessions",
+            "repRecords",
+            "repeatSessions",
+          ],
+          akimichi: [
+            "repRecords",
+            "repeatSessions",
+            "repRecords",
+            "records",
+            "repRecords",
+          ],
+          yamanaka: [
+            "sportVariety",
+            "newSports",
+            "logs",
+            "sportVariety",
+            "newExercises",
+          ],
+          inuzuka: [
+            "newSports",
+            "sportVariety",
+            "newSports",
+            "repeatSessions",
+            "sportVariety",
+          ],
+          aburame: [
+            "newExercises",
+            "logs",
+            "newExercises",
+            "exerciseVariety",
+            "logs",
+          ],
+          otsutsuki: [
+            "newSports",
+            "newExercises",
+            "sportVariety",
+            "records",
+            "exerciseVariety",
+          ],
+        };
+        const FOCUS_LABELS = {
+          records: "record de charge enregistré",
+          repRecords: "record de répétitions à charge identique",
+          newExercises: "nouvel exercice renseigné",
+          newSports: "nouveau sport enregistré",
+          exerciseVariety: "exercices différents renseignés",
+          sportVariety: "sports différents enregistrés",
+          repeatSessions: "séances avec un exercice déjà pratiqué",
+          logs: "séances renseignées",
+        };
+        const normalize = (value) =>
+          String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+        function trainingEvents() {
+          const events = new Map(),
+            exercises = new Set(),
+            sports = new Set(),
+            weights = new Map(),
+            repBests = new Map();
+          const ordered = [
+            ...new Map(sport.sessions.map((s) => [s.id, s])).values(),
+          ]
+            .map((s, i) => ({ s, i }))
+            .sort(
+              (a, b) =>
+                String(a.s.date).localeCompare(String(b.s.date)) || a.i - b.i,
+            );
+          for (const { s } of ordered) {
+            const event = {
+              records: [],
+              repRecords: [],
+              newExercises: [],
+              newSports: [],
+              exerciseNames: [],
+              repeat: false,
+              logged: false,
+              type: normalize(s.type),
+            };
+            const groups = new Map();
+            if (s.type === "Musculation")
+              for (const ex of s.exercises || []) {
+                const key = normalize(ex.name);
+                if (!key) continue;
+                const sets = (ex.sets || []).filter(
+                  (x) =>
+                    x.done &&
+                    Number.isFinite(Number(x.kg)) &&
+                    Number(x.kg) >= 0 &&
+                    Number.isFinite(Number(x.reps)) &&
+                    Number(x.reps) > 0,
+                );
+                if (sets.length)
+                  groups.set(key, {
+                    name: ex.name,
+                    sets: [...(groups.get(key)?.sets || []), ...sets],
+                  });
+              }
+            for (const [key, ex] of groups) {
+              event.logged = true;
+              event.exerciseNames.push(key);
+              if (!exercises.has(key)) event.newExercises.push(ex.name);
+              else event.repeat = true;
+              const max = Math.max(...ex.sets.map((x) => Number(x.kg))),
+                prior = weights.get(key) || 0;
+              if (prior > 0 && max > prior)
+                event.records.push(
+                  ex.name + " : " + prior + " → " + max + " kg",
+                );
+              const byWeight = new Map();
+              for (const set of ex.sets) {
+                const kg = Number(set.kg).toFixed(2);
+                byWeight.set(
+                  kg,
+                  Math.max(byWeight.get(kg) || 0, Number(set.reps)),
+                );
+              }
+              for (const [kg, reps] of byWeight) {
+                const k = key + "|" + kg,
+                  old = repBests.get(k) || 0;
+                if (old > 0 && reps > old)
+                  event.repRecords.push(
+                    ex.name +
+                      " : " +
+                      old +
+                      " → " +
+                      reps +
+                      " rép. à " +
+                      Number(kg) +
+                      " kg",
+                  );
+                repBests.set(k, Math.max(old, reps));
+              }
+              exercises.add(key);
+              weights.set(key, Math.max(prior, max));
+            }
+            if (s.type !== "Musculation" && Number(s.minutes) > 0)
+              event.logged = true;
+            if (event.logged) {
+              if (!sports.has(event.type) && s.type !== "Musculation")
+                event.newSports.push(s.type);
+              sports.add(event.type);
+            }
+            events.set(s.id, event);
+          }
+          return events;
+        }
+        function missionFor(id, index) {
+          const base = missions[index];
+          if (!base) return null;
+          const focus = CLAN_FOCUS[id][index],
+            target =
+              focus === "exerciseVariety"
+                ? Math.min(index + 1, 3)
+                : focus === "sportVariety"
+                  ? 2
+                  : focus === "logs"
+                    ? index + 1
+                    : focus === "repeatSessions"
+                      ? Math.min(index + 1, 3)
+                      : 1;
+          const fallback = index + 1;
+          return {
+            ...base,
+            focus,
+            target,
+            fallback,
+            text:
+              base.text +
+              " Objectif " +
+              rpgClans.catalog().find((c) => c.id === id).name +
+              " : " +
+              target +
+              " " +
+              FOCUS_LABELS[focus] +
+              (focus === "logs"
+                ? "."
+                : " — ou " +
+                  fallback +
+                  " séance(s) renseignée(s), sans record imposé."),
+          };
+        }
+        function finishCard(session, overlay) {
+          sync();
+          const id = active(),
+            p = state.clans[id],
+            story = CLAN_STORIES[id];
+          if (!id || !p || !story) return false;
+          const index = p.claimed.length,
+            canRead = index < 5 && ready(id, index) && !protectedState;
+          const ev = trainingEvents().get(session.id),
+            card = document.createElement("section");
+          card.className = "clan-finish-reward";
+          const name = rpgClans.catalog().find((c) => c.id === id).name;
+          card.innerHTML = canRead
+            ? "<h3>✦ Mission du clan " +
+              safe(name) +
+              " accomplie</h3><p>Une nouvelle scène avec <strong>" +
+              safe(story.mentor) +
+              '</strong> t’attend.</p><button type="button" data-clan-finish-read>Lire la scène →</button>'
+            : "<h3>" +
+              safe(name) +
+              " · " +
+              (index === 5 ? "Campagne terminée" : "Mission en progression") +
+              "</h3><p>" +
+              (index === 5
+                ? "Tes séances continuent de faire progresser ton parcours sportif."
+                : safe(missionFor(id, index).text)) +
+              "</p>";
+          const details = [];
+          if (ev?.records.length)
+            details.push(
+              "🏆 Nouveau record de charge : " +
+                ev.records.slice(0, 2).map(safe).join(" · "),
+            );
+          if (ev?.repRecords.length)
+            details.push(
+              "✦ Nouveau record de répétitions : " +
+                ev.repRecords.slice(0, 2).map(safe).join(" · "),
+            );
+          if (ev?.newExercises.length)
+            details.push(
+              "🆕 Nouvel exercice : " +
+                ev.newExercises.slice(0, 3).map(safe).join(" · "),
+            );
+          if (ev?.newSports.length)
+            details.push(
+              "🆕 Nouveau sport : " + ev.newSports.map(safe).join(" · "),
+            );
+          if (details.length)
+            card.innerHTML +=
+              '<div class="clan-session-highlights">' +
+              details.map((x) => "<p>" + x + "</p>").join("") +
+              "</div>";
+          const close = overlay.querySelector("#shinobiFinishClose");
+          close.before(card);
+          card
+            .querySelector("[data-clan-finish-read]")
+            ?.addEventListener("click", () => {
+              close.click();
+              sportPage = "village";
+              sportRender();
+              const claim = document.querySelector("[data-clan-claim]");
+              if (
+                active() === id &&
+                state.clans[id]?.claimed.length === index &&
+                ready(id, index) &&
+                claim
+              ) {
+                claim.dataset.quiet = "true";
+                claim.click();
+              }
+              document
+                .querySelector(".clan-scene, .clan-campaign")
+                ?.scrollIntoView({ block: "start", behavior: "smooth" });
+            });
+          if (canRead) {
+            const note = overlay.querySelector(
+              ".shinobi-finish-panel > .sport-muted",
+            );
+            if (note)
+              note.textContent =
+                "La quête Sport principale reste à valider dans Quêtes. Choisis de lire ta scène ou de retourner au village.";
+          }
+          return canRead;
+        }
+
+        function metrics(id) {
+          const tracked = new Set(state.clans[id]?.sessions || []),
+            records = [
+              ...new Map(
+                sport.sessions
+                  .filter((s) => tracked.has(s.id))
+                  .map((s) => [s.id, s]),
+              ).values(),
+            ],
+            events = trainingEvents();
+          const exerciseNames = new Set(),
+            types = new Set();
+          let logs = 0,
+            recordCount = 0,
+            repRecords = 0,
+            newExercises = 0,
+            newSports = 0,
+            repeatSessions = 0;
+          for (const s of records) {
+            const e = events.get(s.id);
+            if (!e) continue;
+            if (e.logged) {
+              logs++;
+              types.add(e.type);
+            }
+            for (const name of e.exerciseNames) exerciseNames.add(name);
+            recordCount += e.records.length;
+            repRecords += e.repRecords.length;
+            newExercises += e.newExercises.length;
+            newSports += e.newSports.length;
+            if (e.repeat) repeatSessions++;
+          }
+          return {
+            sessions: records.length,
+            days: new Set(records.map((s) => s.date)).size,
+            logs,
+            records: recordCount,
+            repRecords,
+            newExercises,
+            newSports,
+            exerciseVariety: exerciseNames.size,
+            sportVariety: types.size,
+            repeatSessions,
+          };
+        }
+        function ready(id, index) {
+          const m = metrics(id),
+            q = missionFor(id, index);
+          return (
+            !!q &&
+            m.sessions >= q.sessions &&
+            m.days >= q.days &&
+            m.logs >= q.logs &&
+            (m[q.focus] >= q.target || m.logs >= q.fallback)
+          );
+        }
+
+        function sync() {
+          if (busy || protectedState) return;
+          busy = true;
+          try {
+            const id = active(),
+              next = copy();
+            let changed = false;
+            if (id && !next.clans[id]) {
+              next.clans[id] = { sessions: [], claimed: [] };
+              changed = true;
+            }
+            const assigned = new Set(
+              Object.values(next.clans).flatMap((c) => c.sessions),
+            );
+            if (id)
+              for (const session of sport.sessions)
+                if (!observed.has(session.id) && !assigned.has(session.id)) {
+                  next.clans[id].sessions.push(session.id);
+                  assigned.add(session.id);
+                  changed = true;
+                }
+            if (!changed || persist(next))
+              observed = new Set(sport.sessions.map((s) => s.id));
+          } finally {
+            busy = false;
+          }
+        }
+        function scene(id, index) {
+          const story = CLAN_STORIES[id],
+            c = story.chapters[index];
+          return (
+            '<section class="clan-scene" aria-label="Scène du clan"><small>SCÈNE ' +
+            (index + 1) +
+            " · " +
+            safe(c[0]) +
+            '</small><p class="clan-narration">' +
+            safe(c[2]) +
+            "</p>" +
+            [
+              [story.mentor, c[3]],
+              ["Toi", c[4]],
+              [story.mentor, c[5]],
+            ]
+              .map(
+                ([who, line]) =>
+                  "<p><b>" + safe(who) + "</b>" + safe(line) + "</p>",
+              )
+              .join("") +
+            "</section>"
+          );
+        }
+        function render() {
+          const root = document.getElementById("trainingRoot");
+          if (!root) return;
+          root
+            .querySelectorAll("[data-clan-campaign-ui]")
+            .forEach((e) => e.remove());
+          const id = active();
+          if (!id || !CLAN_STORIES[id]) return;
+          const clan = rpgClans.catalog().find((c) => c.id === id),
+            story = CLAN_STORIES[id],
+            progress = state.clans[id] || { sessions: [], claimed: [] },
+            count = progress.claimed.length;
+          const stage = count
+            ? story.chapters[count - 1][1]
+            : "Technique en sommeil";
+          const hero = root.querySelector(".training-hero");
+          if (hero) {
+            const tag = document.createElement("div");
+            tag.dataset.clanCampaignUi = "badge";
+            tag.className = "clan-technique-badge";
+            tag.textContent =
+              story.symbol +
+              " " +
+              story.technique +
+              " · " +
+              stage +
+              " · " +
+              count +
+              "/5";
+            hero.append(tag);
+          }
+          if (!["village", "progress"].includes(sportPage)) return;
+          const box = document.createElement("section");
+          box.dataset.clanCampaignUi = "panel";
+          box.className = "sport-card clan-campaign";
+          box.style.setProperty("--clan-color", clan.color);
+          const m = metrics(id),
+            index = Math.min(count, 4),
+            chapter = story.chapters[index],
+            mission = missionFor(id, index),
+            canClaim = count < 5 && ready(id, index) && !protectedState;
+          box.innerHTML =
+            "<small>AVENTURE DE CLAN · " +
+            safe(clan.name) +
+            "</small><h2>" +
+            clan.icon +
+            " " +
+            safe(story.technique) +
+            "</h2><p>Ton mentor : <strong>" +
+            safe(story.mentor) +
+            "</strong> · " +
+            count +
+            '/5 étapes accomplies</p><div class="clan-technique phase-' +
+            count +
+            '" role="img" aria-label="' +
+            safe(story.technique) +
+            " : phase " +
+            count +
+            ' sur 5"><span>' +
+            story.symbol +
+            "</span><div>" +
+            Array.from(
+              { length: 5 },
+              (_, i) => '<i class="' + (i < count ? "lit" : "") + '"></i>',
+            ).join("") +
+            '</div></div><p class="clan-technique-name">' +
+            safe(stage) +
+            "</p>" +
+            (count
+              ? '<p class="clan-title">Titre de clan : ' +
+                safe(
+                  count === 5 ? story.title : clan.name + " · Cercle " + count,
+                ) +
+                "</p>"
+              : "<p>" +
+                safe(story.mentor) +
+                " t’attend pour ta première mission.</p>") +
+            (count < 5
+              ? '<div class="clan-mission"><small>ÉTAPE ' +
+                (index + 1) +
+                " / 5</small><h3>" +
+                safe(chapter[0]) +
+                "</h3><p>" +
+                safe(mission.text) +
+                "</p><p>" +
+                Math.min(m.sessions, mission.sessions) +
+                "/" +
+                mission.sessions +
+                " séances · " +
+                Math.min(m.days, mission.days) +
+                "/" +
+                mission.days +
+                " jours" +
+                (mission.logs
+                  ? " · " +
+                    Math.min(m.logs, mission.logs) +
+                    "/" +
+                    mission.logs +
+                    " séances renseignées"
+                  : "") +
+                '</p><p class="clan-focus-progress">' +
+                safe(FOCUS_LABELS[mission.focus]) +
+                " : " +
+                Math.min(m[mission.focus], mission.target) +
+                "/" +
+                mission.target +
+                (mission.focus === "logs"
+                  ? ""
+                  : " · alternative : " +
+                    Math.min(m.logs, mission.fallback) +
+                    "/" +
+                    mission.fallback +
+                    " séances renseignées") +
+                '</p><button type="button" data-clan-claim ' +
+                (!canClaim ? "disabled" : "") +
+                ">" +
+                (canClaim
+                  ? "✦ Terminer la mission et lire la scène"
+                  : "Mission en cours") +
+                "</button></div>"
+              : '<p class="clan-complete">✦ Campagne terminée · apparence et titre ultimes débloqués.</p>') +
+            '<p class="sport-muted">Seules les nouvelles séances enregistrées pendant que ce clan est actif comptent. Musculation et autres sports sont acceptés. Ces objectifs sont cumulés : pas de série de jours consécutifs, pas de record exigé. Respecte ton programme et tes jours de repos. Aucun bonus d’XP ni de force.</p>' +
+            (count
+              ? scene(id, Math.min(sceneViewed[id] ?? count - 1, count - 1))
+              : "") +
+            (count
+              ? '<details class="clan-journal"><summary>📖 Journal du clan · ' +
+                count +
+                " scènes</summary>" +
+                progress.claimed
+                  .map(
+                    (_, i) =>
+                      '<button type="button" data-clan-replay="' +
+                      i +
+                      '">Relire ' +
+                      (i + 1) +
+                      " · " +
+                      safe(story.chapters[i][0]) +
+                      "</button>",
+                  )
+                  .join("") +
+                "</details>"
+              : "") +
+            '<details class="clan-collection"><summary>🎴 Mes parcours de clan</summary>' +
+            Object.entries(state.clans)
+              .map(
+                ([key, value]) =>
+                  "<p>" +
+                  safe(
+                    rpgClans.catalog().find((c) => c.id === key)?.name || key,
+                  ) +
+                  " · " +
+                  value.claimed.length +
+                  "/5 étapes" +
+                  (value.claimed.length === 5
+                    ? " · " + safe(CLAN_STORIES[key].title)
+                    : "") +
+                  (key === id ? " · ACTIF" : " · conservé") +
+                  "</p>",
+              )
+              .join("") +
+            '</details><p id="clanCampaignStatus" role="status">' +
+            (protectedState
+              ? "La sauvegarde du parcours est illisible. Les données originales sont protégées. Exporte une sauvegarde avant réparation."
+              : "") +
+            "</p>";
+          const anchor = root.querySelector(".konoha-clans");
+          if (anchor) anchor.after(box);
+          else root.append(box);
+        }
+        function refresh() {
+          sync();
+          render();
+        }
+        function notices() {
+          const id = active(),
+            p = state.clans[id],
+            out = [];
+          if (!id || !p) return out;
+          if (p.claimed.length < 5 && ready(id, p.claimed.length))
+            out.push({
+              id: "clan-ready:" + id + ":" + p.claimed.length,
+              title: "Mission de clan accomplie",
+              body:
+                rpgClans.catalog().find((c) => c.id === id).name +
+                " · " +
+                CLAN_STORIES[id].chapters[p.claimed.length][0] +
+                " : une scène et une technique t’attendent.",
+            });
+          return out;
+        }
+        document.addEventListener("click", (e) => {
+          const claim = e.target.closest("[data-clan-claim]");
+          if (claim) {
+            const id = active(),
+              p = state.clans[id],
+              index = p?.claimed.length;
+            if (
+              !id ||
+              index === undefined ||
+              index >= 5 ||
+              !ready(id, index) ||
+              protectedState
+            )
+              return;
+            const next = copy();
+            next.clans[id].claimed.push({ at: new Date().toISOString() });
+            if (persist(next)) {
+              sceneViewed[id] = index;
+              render();
+              const st = CLAN_STORIES[id];
+              if (!claim.dataset.quiet)
+                queueToast(
+                  rpgClans.catalog().find((c) => c.id === id).icon,
+                  "TECHNIQUE ÉVEILLÉE",
+                  st.technique + " · " + st.chapters[index][1],
+                );
+              document
+                .querySelector(".clan-technique")
+                ?.classList.add("clan-awakening");
+              document
+                .querySelector(".clan-scene")
+                ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              window.rpgInbox?.scan();
+            }
+            return;
+          }
+          const replay = e.target.closest("[data-clan-replay]");
+          if (replay) {
+            const id = active(),
+              i = Number(replay.dataset.clanReplay);
+            if (
+              Number.isInteger(i) &&
+              i >= 0 &&
+              i < (state.clans[id]?.claimed.length || 0)
+            ) {
+              sceneViewed[id] = i;
+              render();
+              document
+                .querySelector(".clan-scene")
+                ?.scrollIntoView({ block: "nearest" });
+            }
+          }
+        });
+        document.addEventListener("rpg-clan:changed", refresh);
+        const prior = sportRender;
+        sportRender = function (...args) {
+          const result = prior(...args);
+          refresh();
+          return result;
+        };
+        window.rpgClanCampaign = {
+          refresh,
+          metrics,
+          ready,
+          notices,
+          mission: missionFor,
+          events: () => Object.fromEntries(trainingEvents()),
+          finishCard,
+          getState: () => JSON.parse(JSON.stringify(state)),
+          stories: () => JSON.parse(JSON.stringify(CLAN_STORIES)),
+        };
+        refresh();
+      })();</script
+    ><script id="hero-feast-script">
+      (() => {
+        "use strict";
+        let selectedTarget;
+        const weekOf = feastWeekOf,
+          safe = (v) =>
+            String(v).replace(
+              /[&<>"']/g,
+              (c) =>
+                ({
+                  "&": "&amp;",
+                  "<": "&lt;",
+                  ">": "&gt;",
+                  '"': "&quot;",
+                  "'": "&#39;",
+                })[c],
+            );
+        const format = (d) =>
+          new Date(d + "T12:00:00").toLocaleDateString("fr-FR");
+        function info(date = activeQuestDate()) {
+          const week = weekOf(date),
+            end = new Date(week + "T12:00:00");
+          end.setDate(end.getDate() + 6);
+          const endISO = [
+            end.getFullYear(),
+            String(end.getMonth() + 1).padStart(2, "0"),
+            String(end.getDate()).padStart(2, "0"),
+          ].join("-");
+          return {
+            week,
+            end: endISO,
+            use:
+              entries.find(
+                (e) => e.feast === true && weekOf(e.date) === week,
+              ) || null,
+          };
+        }
+        function candidates() {
+          return DATA.quests.filter(
+            (q) => q.module === "Nutrition" && q.active !== false && q.xp < 0,
+          );
+        }
+        function target() {
+          const qs = candidates();
+          return (
+            qs.find((q) => q.id === selectedTarget) ||
+            qs.find((q) => q.id === 900004) ||
+            qs.find((q) => /exc[eè]s/i.test(q.name)) ||
+            qs[0]
+          );
+        }
+        function renderFeast() {
+          document
+            .querySelectorAll("[data-feast-panel]")
+            .forEach((x) => x.remove());
+          const status = info(),
+            q = target(),
+            used = status.use,
+            date = activeQuestDate();
+          const count = q
+              ? entries.filter((e) => e.date === date && e.id === q.id).length
+              : 0,
+            full = q && count >= (q.limit || 1);
+          for (const module of document.querySelectorAll(
+            "#questModulesSeparate .accent-nutrition, #questModules .accent-nutrition",
+          )) {
+            const box = document.createElement("section");
+            box.dataset.feastPanel = "";
+            box.className = "hero-feast";
+            box.innerHTML =
+              '<div class="hero-feast-heading"><span aria-hidden="true">🍜</span><div><h4>Festin du héros</h4><p>1 repas libre par semaine, sans malus d’XP.</p></div></div><p class="hero-feast-week">Semaine du ' +
+              format(status.week) +
+              " au " +
+              format(status.end) +
+              " · " +
+              (used ? "JETON UTILISÉ" : "1 JETON DISPONIBLE") +
+              "</p>" +
+              (used
+                ? "<p>Utilisé le " +
+                  format(used.date) +
+                  " · <strong>0 XP</strong><br><small>" +
+                  safe(used.name) +
+                  '</small></p><button type="button" data-feast-undo="' +
+                  safe(used.uid) +
+                  '">↶ Annuler cette utilisation</button>'
+                : (candidates().length > 1
+                    ? "<label>Malus concerné<select data-feast-target>" +
+                      candidates()
+                        .map(
+                          (x) =>
+                            '<option value="' +
+                            x.id +
+                            '" ' +
+                            (q?.id === x.id ? "selected" : "") +
+                            ">" +
+                            safe(x.name) +
+                            " (" +
+                            x.xp +
+                            " XP)</option>",
+                        )
+                        .join("") +
+                      "</select></label>"
+                    : "") +
+                  "<p>" +
+                  (q
+                    ? "Pour le " +
+                      format(date) +
+                      " : <strong>" +
+                      safe(q.name) +
+                      "</strong><br>" +
+                      q.xp +
+                      " XP → <strong>0 XP</strong>"
+                    : "Aucun malus Nutrition actif à remplacer. Tu peux en ajouter ou en réactiver un dans la personnalisation.") +
+                  '</p><button type="button" data-feast-use ' +
+                  (!q || full ? "disabled" : "") +
+                  ">🎟️ Utiliser mon jeton</button>" +
+                  (full
+                    ? '<p class="hero-feast-help">Ce malus a déjà été enregistré à cette date. Annule sa validation si tu t’es trompé avant d’utiliser le jeton.</p>'
+                    : "")) +
+              '<p class="hero-feast-help">Un repas uniquement. Les jetons ne se cumulent pas. Les autres malus restent inchangés.</p>';
+            module.append(box);
+          }
+          for (const use of entries.filter(
+            (e) => e.date === date && e.feast === true,
+          ))
+            for (const root of ["questModulesSeparate", "questModules"]) {
+              const row = document
+                .querySelector("#" + root + ' [data-id="' + use.id + '"]')
+                ?.closest(".quest");
+              if (row) {
+                const q = DATA.quests.find((q) => q.id === use.id),
+                  all = entries.filter(
+                    (x) => x.date === date && x.id === use.id,
+                  );
+                const xp = row.querySelector(".xp");
+                if (xp && (q?.limit || 1) === 1 && all.length === 1) {
+                  xp.textContent = "0 XP · Festin";
+                  xp.classList.remove("negative");
+                }
+                const meta = row.querySelector(".questmeta");
+                if (meta)
+                  meta.textContent =
+                    (q?.limit || 1) > 1
+                      ? "🍜 1 validation neutralisée · " +
+                        all.length +
+                        "/" +
+                        q.limit
+                      : "🍜 Repas libre · jeton utilisé";
+              }
+            }
+        }
+        function commit(next) {
+          if (
+            appStorage.getItem(KEY) === null &&
+            localStorage.getItem(KEY) !== null
+          )
+            throw Error(
+              "Historique original protégé ; exporte une sauvegarde avant réparation.",
+            );
+          appStorage.commit({ [KEY]: JSON.stringify(next) });
+          entries = next;
+          render();
+        }
+        document.addEventListener("change", (e) => {
+          if (e.target.matches("[data-feast-target]")) {
+            selectedTarget = Number(e.target.value);
+            renderFeast();
+          }
+        });
+        document.addEventListener("click", (e) => {
+          if (e.target.closest("[data-feast-use]")) {
+            const date = activeQuestDate(),
+              q = target();
+            if (
+              !q ||
+              info(date).use ||
+              entries.filter((x) => x.date === date && x.id === q.id).length >=
+                (q.limit || 1)
+            )
+              return;
+            if (
+              !confirm(
+                "Utiliser ton Festin du héros pour le " +
+                  format(date) +
+                  " ? Le malus « " +
+                  q.name +
+                  " » sera enregistré à 0 XP au lieu de " +
+                  q.xp +
+                  " XP. Tu ne pourras pas utiliser un autre jeton dans cette semaine.",
+              )
+            )
+              return;
+            const use = {
+              uid:
+                "feast-" +
+                Date.now() +
+                "-" +
+                Math.random().toString(36).slice(2),
+              ts: Date.now(),
+              date,
+              id: q.id,
+              module: "Nutrition",
+              name: "🍜 Festin du héros · " + q.name,
+              xp: 0,
+              feast: true,
+              feastOriginalXp: q.xp,
+            };
+            try {
+              commit([...entries, use]);
+              queueToast(
+                "🍜",
+                "FESTIN DU HÉROS",
+                "Ton repas libre est enregistré à 0 XP. Profite de ton festin !",
+              );
+            } catch (error) {
+              alert("Jeton non enregistré : " + error.message);
+            }
+            return;
+          }
+          const undo = e.target.closest("[data-feast-undo]");
+          if (undo) {
+            const use = entries.find(
+              (x) => x.uid === undo.dataset.feastUndo && x.feast === true,
+            );
+            if (!use) return;
+            if (
+              !confirm(
+                "Annuler le Festin du " +
+                  format(use.date) +
+                  " ? Cette validation à 0 XP sera retirée et le jeton rendu pour la semaine correspondante.",
+              )
+            )
+              return;
+            try {
+              commit(entries.filter((x) => x.uid !== use.uid));
+            } catch (error) {
+              alert("Annulation non enregistrée : " + error.message);
+            }
+          }
+        });
+        const previous = render;
+        render = function (...args) {
+          const value = previous(...args);
+          renderFeast();
+          return value;
+        };
+        window.rpgFeast = { info, weekOf, refresh: renderFeast };
+        renderFeast();
       })();
     </script></body
   ></html
