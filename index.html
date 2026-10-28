@@ -8750,6 +8750,100 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
 
       /* V4.5 — Training isolated from original RPG data */
       const SPORT_KEY = "rpg-life-training-v45";
+      const SPORT_DISCIPLINES = [
+        {
+          name: "Course à pied",
+          icon: "🏃",
+          aliases: [
+            "course",
+            "running",
+            "run",
+            "jogging",
+            "footing",
+            "course a pied",
+            "tapis de course",
+          ],
+        },
+        {
+          name: "Vélo",
+          icon: "🚴",
+          aliases: ["velo", "cyclisme", "cycling", "bike"],
+        },
+        {
+          name: "Natation",
+          icon: "🏊",
+          aliases: ["natation", "swimming", "swim"],
+        },
+        { name: "Rameur", icon: "🚣", aliases: ["rameur", "rowing", "aviron"] },
+        {
+          name: "Marche",
+          icon: "🚶",
+          aliases: ["marche", "marche rapide", "walking"],
+        },
+        {
+          name: "Randonnée",
+          icon: "🥾",
+          aliases: ["randonnee", "rando", "hiking"],
+        },
+        {
+          name: "Football",
+          icon: "⚽",
+          aliases: ["football", "foot", "soccer"],
+        },
+        {
+          name: "Basketball",
+          icon: "🏀",
+          aliases: ["basketball", "basket", "basket ball"],
+        },
+        { name: "Tennis", icon: "🎾", aliases: ["tennis"] },
+        {
+          name: "Boxe",
+          icon: "🥊",
+          aliases: ["boxe", "boxing", "boxe anglaise"],
+        },
+      ];
+      const sportNormalizeName = (name) =>
+        String(name || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[’'-]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      function sportDisciplineKey(name) {
+        const key = sportNormalizeName(name);
+        const found = SPORT_DISCIPLINES.find(
+          (d) => sportNormalizeName(d.name) === key || d.aliases.includes(key),
+        );
+        return found ? sportNormalizeName(found.name) : key;
+      }
+      function sportDisciplineOptions() {
+        return [
+          { name: "Musculation", icon: "🏋️" },
+          ...SPORT_DISCIPLINES,
+          { name: "Autre", icon: "➕" },
+        ]
+          .map(
+            (d) =>
+              `<option value="${sportEsc(d.name)}" ${sportSportChoice === d.name ? "selected" : ""}>${d.icon} ${d.name === "Autre" ? "Autre sport personnalisé" : d.name}</option>`,
+          )
+          .join("");
+      }
+      function sportVillageActivity(reference = today()) {
+        const weekStart = feastWeekOf(reference),
+          monthStart = reference.slice(0, 7) + "-01";
+        const sessions = [
+          ...new Map(sport.sessions.map((s) => [s.id, s])).values(),
+        ].filter((s) => s.date <= reference);
+        return {
+          week: sessions.filter((s) => s.date >= weekStart).length,
+          month: sessions.filter((s) => s.date >= monthStart).length,
+          weekStart,
+          monthStart,
+          reference,
+        };
+      }
+      window.rpgTrainingActivity = { counts: sportVillageActivity };
       const SPORT_RANKS = [
         "Genin",
         "Chûnin",
@@ -8968,9 +9062,24 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         }
         return "Première séance";
       }
-      function sportProgramCard(p) {
-        return `<div class="sport-card"><h3>⚔ ${sportEsc(p.name)}</h3><p>${p.exercises.length} exercice(s)</p><div class="sport-actions"><button class="primary" data-sport="start" data-id="${sportEsc(p.id)}">▶ Commencer</button>${p.id === SPORT_LOCKED_ID ? "" : `<button data-sport="edit" data-id="${sportEsc(p.id)}">✎ Modifier</button>`}${p.id === SPORT_LOCKED_ID ? '<span class="sport-muted">🔒 Modèle protégé</span>' : `<button data-sport="deleteProgram" data-id="${sportEsc(p.id)}">Supprimer</button>`}</div></div>`;
+      function sportProgramCard(p, manage = false) {
+        return `<div class="sport-card training-program-card"><div><h3>${sportEsc(p.name)}</h3><p>${p.exercises.length} exercice${p.exercises.length === 1 ? "" : "s"} · ${p.exercises.reduce((n, e) => n + e.sets.length, 0)} séries</p></div><button class="primary" data-sport="start" data-id="${sportEsc(p.id)}">▶ Commencer</button>${manage ? `<div class="sport-actions">${p.id === SPORT_LOCKED_ID ? '<span class="sport-muted">🔒 Modèle protégé</span>' : `<button data-sport="edit" data-id="${sportEsc(p.id)}">✎ Modifier</button><button data-sport="deleteProgram" data-id="${sportEsc(p.id)}">Supprimer</button>`}</div>` : ""}</div>`;
       }
+      function sportManagement() {
+        return `<details class="v69-fold easy-fold training-management" data-training-management><summary>⚙️ Gérer mes programmes et exercices</summary><div class="sport-actions"><button data-sport="newProgram">+ Créer un programme</button><button data-sport="page" data-page="programs">Mes programmes</button><button data-sport="page" data-page="library">Bibliothèque d’exercices</button></div></details>`;
+      }
+      function sportResumeCard() {
+        const a = sport.active;
+        if (!a) return "";
+        const done = a.exercises.reduce(
+            (n, e) => n + e.sets.filter((s) => s.done).length,
+            0,
+          ),
+          total = a.exercises.reduce((n, e) => n + e.sets.length, 0),
+          current = a.exercises.find((e) => e.sets.some((s) => !s.done));
+        return `<section class="sport-card training-resume" aria-label="Séance en cours"><small>SÉANCE EN COURS · ${sportEsc(a.date)}</small><h3>${sportEsc(a.name)}</h3><p>${done}/${total} séries validées · sauvegarde automatique</p><div class="sport-progress-track"><div class="sport-progress-fill" style="width:${total ? Math.round((done / total) * 100) : 0}%"></div></div><p class="training-current-exercise">${current ? "À poursuivre : " + sportEsc(current.name) : "Toutes les séries sont cochées. Tu peux terminer ta séance."}</p><button class="primary" data-sport="resume">▶ Reprendre ma séance</button></section>`;
+      }
+
       function sportMuscleColor(name) {
         const n = String(name || "").toLowerCase();
         if (/couch|pec|développé|developpe/.test(n)) return "#ff7087";
@@ -9132,38 +9241,19 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         const l = sportLevel(),
           count = sport.sessions.length,
           unlocked = SPORT_GEAR.filter((g) => count >= g[2]);
-        let html = `<div class="training-hero"><div class="training-eyebrow">🍃 RPG LIFE · KONOHA</div><h2>BIENVENUE AU VILLAGE DE KONOHA</h2><p>Chaque séance forge ton nindô.</p></div><nav class="training-nav shinobi-subnav" aria-label="Navigation du village de Konoha"><button class="${sportPage === "village" ? "active" : ""}" data-sport="page" data-page="village">🏯 Village</button><button class="${["home", "library", "programs"].includes(sportPage) ? "active" : ""}" data-sport="page" data-page="home">⚔️ Entraînement</button><button class="${sportPage === "missions" ? "active" : ""}" data-sport="page" data-page="missions">📜 Missions</button><button class="${sportPage === "progress" ? "active" : ""}" data-sport="page" data-page="progress">🏆 Progression</button></nav>`;
-        if (sportPage === "home")
-          html += `<div class="sport-card sport-launch sport-date-compact"><label class="sport-field">📅 Date de la mission<input type="date" data-sport-date value="${sportChosenDate()}" max="${today()}"></label><label class="sport-field">Discipline<select id="sportDiscipline" data-sport-discipline><option value="Musculation" ${sportSportChoice === "Musculation" ? "selected" : ""}>🏋️ Musculation</option><option value="Autre" ${sportSportChoice === "Autre" ? "selected" : ""}>➕ Autre sport</option></select></label></div>`;
-        if (sportPage === "village") {
-          const active = sport.active,
-            last = [...sport.sessions]
-              .sort((a, b) => String(a.date).localeCompare(String(b.date)))
-              .at(-1);
-          const done = active
-              ? (active.exercises || []).reduce(
-                  (n, ex) => n + ex.sets.filter((set) => set.done).length,
-                  0,
-                )
-              : 0,
-            totalSets = active
-              ? (active.exercises || []).reduce(
-                  (n, ex) => n + ex.sets.length,
-                  0,
-                )
-              : 0;
-          html += `<div class="sport-card shinobi-village-intro"><div class="training-eyebrow">🏯 TON POINT DE DÉPART</div><h2>Bienvenue au Village, Shinobi</h2><p>${active ? "Ta séance en cours t’attend. Reprends là où tu t’es arrêté." : "Prêt pour ta prochaine séance ? Retrouve tes programmes et choisis ton entraînement."}</p>${active ? `<div class="shinobi-session-preview"><h3>⚔️ ${sportEsc(active.name)}</h3><p>${sportEsc(active.date)} · ${done}/${totalSets} séries validées</p><div class="shinobi-chakra"><div style="width:${totalSets ? Math.round((done / totalSets) * 100) : 0}%"></div></div></div>` : ""}<div class="shinobi-village-actions"><button class="primary" data-sport="${active ? "resume" : "page"}" ${active ? "" : 'data-page="home"'}>${active ? "▶ Reprendre ma séance" : "⚔️ Commencer mon entraînement"} →</button></div>${last ? `<p class="sport-muted">Dernière séance enregistrée : ${sportEsc(last.name)} · ${sportEsc(last.date)}</p>` : '<p class="sport-muted">Ta première séance commence dans Entraînement.</p>'}</div>`;
+        const trainingPage = ["home", "programs", "library"].includes(
+          sportPage,
+        );
+        let html = `${trainingPage ? '<div class="training-hero training-compact"><h2>⚔️ Entraînement</h2></div>' : '<div class="training-hero"><div class="training-eyebrow">🍃 RPG LIFE · KONOHA</div><h2>BIENVENUE AU VILLAGE DE KONOHA</h2><p>Chaque séance forge ton nindô.</p></div>'}<nav class="training-nav shinobi-subnav" aria-label="Navigation du village de Konoha"><button class="${sportPage === "village" ? "active" : ""}" data-sport="page" data-page="village">🏯 Village</button><button class="${["home", "library", "programs"].includes(sportPage) ? "active" : ""}" data-sport="page" data-page="home">⚔️ Entraînement</button><button class="${sportPage === "missions" ? "active" : ""}" data-sport="page" data-page="missions">📜 Missions</button><button class="${sportPage === "progress" ? "active" : ""}" data-sport="page" data-page="progress">🏆 Progression</button></nav>`;
+        if (sportPage === "home") {
+          html += sportResumeCard();
+          const controls = `<div class="sport-card sport-launch sport-date-compact"><label class="sport-field">📅 Date de la séance<input type="date" data-sport-date value="${sportChosenDate()}" max="${today()}"></label><label class="sport-field">Discipline<select id="sportDiscipline" data-sport-discipline>${sportDisciplineOptions()}</select></label></div>`;
+          html += sport.active
+            ? `<details class="v69-fold training-session-settings"><summary>📅 Date et discipline</summary>${controls}</details>`
+            : controls;
         }
         if (sportPage === "missions") {
           html += shinobiQuestView(l);
-          const missions = [
-            ["Première mission", 1],
-            ["Épreuve de l’Académie", 3],
-            ["Examen Chûnin", 10],
-            ["Mission de rang A", 20],
-            ["Chemin du Kage", 60],
-          ];
-          html += `<details class="v69-fold"><summary>📜 Missions du village</summary><div class="sport-card">${missions.map(([name, n]) => `<div class="shinobi-mission"><strong>${count >= n ? "✅" : "🔒"} ${name}</strong><p>${Math.min(count, n)}/${n} séances · ${count >= n ? "Mission accomplie" : "En progression"}</p></div>`).join("")}</div></details>`;
         }
         if (sportPage === "progress") {
           html += `<div class="sport-card"><h2 class="sport-title">🏆 Mon parcours Shinobi</h2><div class="sport-stat">${sportEsc(l.rank)} · Niveau ${l.lv}</div><p>${l.xp} points de maîtrise · ${200 - (l.xp % 200)} avant le prochain niveau</p><div class="shinobi-chakra"><div style="width:${(l.xp % 200) / 2}%"></div></div><p>⚔️ ${count} séances accomplies · 🎒 ${unlocked.length} équipements débloqués</p></div><div class="sport-card"><h2 class="sport-title">🍃 Grades du village</h2>${SPORT_RANKS.map((rank, i) => `<div class="shinobi-mission"><strong>${i <= Math.max(0, SPORT_RANKS.indexOf(l.rank)) ? "✅" : "🔒"} ${sportEsc(rank)}</strong></div>`).join("")}</div>`;
@@ -9184,7 +9274,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               ),
             );
           const a = sport.active;
-          html += `<div class="sport-card"><h2 class="sport-title">⚔ ${sportEsc(a.name)}</h2><p>📅 ${sportEsc(a.date)} · ${a.exercises.reduce((n, e) => n + e.sets.filter((x) => x.done).length, 0)} / ${a.exercises.reduce((n, e) => n + e.sets.length, 0)} séries validées · sauvegarde automatique</p><div class="sport-progress-track"><div class="sport-progress-fill" style="width:${a.exercises.reduce((n, e) => n + e.sets.length, 0) ? Math.round((100 * a.exercises.reduce((n, e) => n + e.sets.filter((x) => x.done).length, 0)) / a.exercises.reduce((n, e) => n + e.sets.length, 0)) : 0}%"></div></div><p class="sport-muted">🔒 Modèle permanent préservé. Les changements d'aujourd'hui sont ponctuels.</p>${a.exercises
+          html += `<div class="sport-card training-active-session"><h2 class="sport-title">Mes exercices</h2>${a.exercises
             .map(
               (ex, i) =>
                 `<details style="--muscle:${sportMuscleColor(ex.name)};--muscle-glow:${sportMuscleColor(ex.name)}26" class="sport-ex sport-ex-compact ${ex.sets.length && ex.sets.every((x) => x.done) ? "sport-ex-complete" : ""}" ${sportOpenExercise === i ? "open" : ""}><summary data-sport-summary="${i}"><strong>${ex.sets.length && ex.sets.every((x) => x.done) ? "✅ " : ""}${sportEsc(ex.name)}</strong><span>${ex.sets.filter((x) => x.done).length}/${ex.sets.length} séries ✓</span><small class="shinobi-ex-summary">${ex.sets[0]?.kg || 0} kg × ${ex.sets[0]?.reps || 0} rép.</small></summary><p class="sport-note">Dernière fois : ${sportEsc(sportLast(ex.name))}</p><p class="sport-note">Objectif de référence : ${sportEsc(
@@ -9200,18 +9290,20 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             .join(
               "",
             )}<div class="sport-actions"><button data-sport="addActiveEx">+ Ajouter un exercice</button>${a.programId === SPORT_LOCKED_ID ? '<button data-sport="restoreDefault">↺ Restaurer les 9 exercices</button>' : ""}${a.programId === SPORT_LOCKED_ID ? "" : '<button data-sport="saveTemplate">⭐ Enregistrer comme programme</button>'}<button class="primary" data-sport="finish">🏆 Terminer la séance</button><button data-sport="cancel">Annuler</button></div></div>`;
+          html += sportManagement();
           root.innerHTML = html;
           window.rpgLifeErgonomics?.sport(root);
           return;
         }
         if (sportPage === "home") {
-          html += `<div class="sport-card"><h2 class="sport-title">⚔ CHOISIR SA MISSION</h2>${sportSportChoice === "Musculation" ? `<h3 class="sport-title">⭐ PROGRAMMES DE RÉFÉRENCE</h3><div class="sport-grid">${sport.programs.map(sportProgramCard).join("") || "<p>Aucun entraînement enregistré.</p>"}</div><div class="sport-actions"><button data-sport="newProgram">+ Nouveau programme</button><button data-sport="page" data-page="library">⚙ Gérer les exercices</button></div>` : `<div class="sport-row"><label class="sport-field">Sport<input id="sportCustomName" placeholder="Ex. Tennis, football, natation…" maxlength="80"></label><label class="sport-field">Durée (min)<input id="sportCustomMinutes" type="number" min="1" value="60"></label></div><div class="sport-row"><label class="sport-field">Intensité<select id="sportCustomIntensity"><option>Modérée</option><option>Faible</option><option>Élevée</option></select></label><label class="sport-field">Distance (km, facultatif)<input id="sportCustomDistance" type="number" min="0" step="0.1" placeholder="—"></label></div><label class="sport-field">Notes<input id="sportCustomNotes" placeholder="Sensations, performance…"></label><div class="sport-actions"><button class="primary" data-sport="saveCustomSport">✓ Enregistrer la séance</button></div>`}</div>`;
+          html += `<div class="sport-card"><h2 class="sport-title">${sportSportChoice === "Musculation" ? "Mes programmes" : "Enregistrer ma séance"}</h2>${sportSportChoice === "Musculation" ? `<div class="sport-grid">${sport.programs.map((p) => sportProgramCard(p)).join("") || "<p>Aucun programme enregistré. Crée le tien dans les options ci-dessous.</p>"}</div>` : `<div class="sport-row">${sportSportChoice === "Autre" ? '<label class="sport-field">Sport personnalisé<input id="sportCustomName" placeholder="Ex. Escalade, badminton…" maxlength="80"></label>' : '<div class="sport-field">Sport choisi<strong>' + sportEsc(sportSportChoice) + "</strong></div>"}<label class="sport-field">Durée (min)<input id="sportCustomMinutes" type="number" min="1" value="60"></label></div><div class="sport-row"><label class="sport-field">Intensité<select id="sportCustomIntensity"><option>Modérée</option><option>Faible</option><option>Élevée</option></select></label><label class="sport-field">Distance (km, facultatif)<input id="sportCustomDistance" type="number" min="0" step="0.1" placeholder="—"></label></div><label class="sport-field">Notes<input id="sportCustomNotes" placeholder="Sensations, performance…"></label><div class="sport-actions"><button class="primary" data-sport="saveCustomSport">✓ Enregistrer la séance</button></div>`}</div>`;
         }
+        if (sportPage === "home") html += sportManagement();
         if (sportPage === "library") {
           html += `<h2 class="sport-title">📚 Bibliothèque d’exercices</h2><div class="sport-actions"><button class="primary" data-sport="addLibrary">+ Ajouter un exercice</button></div><div class="sport-grid">${sport.library.map((x) => `<div class="sport-card"><h3>${sportEsc(x)}</h3><p>${sportEsc(sportLast(x))}</p><button data-sport="removeLibrary" data-name="${sportEsc(x)}">Supprimer</button></div>`).join("") || '<p class="sport-muted">Ajoute tes exercices habituels, puis réutilise-les dans plusieurs programmes.</p>'}</div>`;
         }
         if (sportPage === "programs") {
-          html += `<h2 class="sport-title">⭐ Programmes permanents</h2><div class="sport-actions"><button class="primary" data-sport="newProgram">+ Nouveau programme</button></div><div class="sport-grid">${sport.programs.map(sportProgramCard).join("") || "<p>Tu peux créer ton programme progressivement.</p>"}</div>`;
+          html += `<h2 class="sport-title">⭐ Programmes permanents</h2><div class="sport-actions"><button class="primary" data-sport="newProgram">+ Nouveau programme</button></div><div class="sport-grid">${sport.programs.map((p) => sportProgramCard(p, true)).join("") || "<p>Tu peux créer ton programme progressivement.</p>"}</div>`;
         }
         if (sportPage === "progress" || sportPage === "history") {
           html += `<div class="sport-card"><h2 class="sport-title">🎒 Équipements et récompenses</h2><p>${unlocked.length}/${SPORT_GEAR.length} équipements débloqués · ${sport.equipped ? "Équipé : " + sportEsc(sport.equipped) : "Aucun équipement porté"}</p><p class="sport-muted">Les récompenses suivent tes séances enregistrées, sans ajouter d’XP.</p></div>`;
@@ -9261,8 +9353,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           if (kind === "records")
             return sport.sessions.reduce((n, x) => n + (Number(x.pr) || 0), 0);
           if (kind === "variety")
-            return new Set(sport.sessions.map((x) => x.type).filter(Boolean))
-              .size;
+            return new Set(
+              sport.sessions
+                .map((x) => sportDisciplineKey(x.type))
+                .filter(Boolean),
+            ).size;
           return 0;
         }
         function shinobiQuestView(l) {
@@ -9270,7 +9365,18 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             [...SHINOBI_ARCS].reverse().find((x) => l.lv >= x.level) ||
             SHINOBI_ARCS[0];
           const next = SHINOBI_ARCS.find((x) => x.level > l.lv);
-          return `<div class="sport-card shinobi-arc"><h2 class="sport-title">📖 Chroniques du Shinobi</h2><div class="shinobi-arc-badge">${arc.icon} Chapitre actuel · Niveau ${l.lv}</div><h3>${sportEsc(arc.name)}</h3><p>👤 Mentor : <strong>${sportEsc(arc.mentor)}</strong> — ${sportEsc(arc.desc)}</p><p class="sport-muted">${next ? `Prochain chapitre : ${sportEsc(next.name)} au niveau ${next.level}` : "Tous les chapitres sont accessibles !"}</p><div class="shinobi-arc-path">${SHINOBI_ARCS.map((x) => `<div class="shinobi-arc-step ${l.lv >= x.level ? "done" : "pending"}"><span>${l.lv >= x.level ? x.icon : "🔒"}</span><div><strong>${sportEsc(x.name)}</strong><small>Niveau ${x.level} · ${sportEsc(x.mentor)}</small></div></div>`).join("")}</div></div>
+          return `<div class="sport-card shinobi-arc"><h2 class="sport-title">📖 Chroniques du Shinobi</h2><div class="shinobi-arc-badge">${arc.icon} Chapitre actuel · Niveau ${l.lv}</div><h3>${sportEsc(arc.name)}</h3><p>👤 Mentor : <strong>${sportEsc(arc.mentor)}</strong> — ${sportEsc(arc.desc)}</p><p class="sport-muted">${next ? `Prochain chapitre : ${sportEsc(next.name)} au niveau ${next.level}` : "Tous les chapitres sont accessibles !"}</p><div class="shinobi-arc-path">${SHINOBI_ARCS.map((x) => `<div class="shinobi-arc-step ${l.lv >= x.level ? "done" : "pending"}"><span>${l.lv >= x.level ? x.icon : "🔒"}</span><div><strong>${sportEsc(x.name)}</strong><small>Niveau ${x.level} · ${sportEsc(x.mentor)}</small></div></div>`).join("")}</div><details class="v69-fold"><summary>🏯 Étapes du village</summary>${[
+            ["Première mission", 1],
+            ["Épreuve de l’Académie", 3],
+            ["Examen Chûnin", 10],
+            ["Mission de rang A", 20],
+            ["Chemin du Kage", 60],
+          ]
+            .map(
+              ([name, n]) =>
+                `<div class="shinobi-mission"><strong>${count >= n ? "✅" : "🔒"} ${name}</strong><p>${Math.min(count, n)}/${n} séances · ${count >= n ? "Accomplie" : "En progression"}</p></div>`,
+            )
+            .join("")}</details></div>
  <div class="sport-card"><h2 class="sport-title">🎯 Quêtes des personnages</h2><p class="sport-muted">Progression automatique à partir de tes séances. Les quêtes donnent des badges narratifs, sans XP supplémentaire et sans obligation de t'entraîner en cas de douleur ou de fatigue.</p><div class="shinobi-quest-list">${SHINOBI_QUESTS.map(
    (q) => {
      const progress = shinobiProgress(q.kind),
@@ -9400,7 +9506,12 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         sportSave();
       }
       function sportOther() {
-        const name = document.getElementById("sportCustomName")?.value.trim();
+        const predefined = SPORT_DISCIPLINES.find(
+          (d) => d.name === sportSportChoice,
+        );
+        const name =
+          predefined?.name ||
+          document.getElementById("sportCustomName")?.value.trim();
         const minutes = Number(
           document.getElementById("sportCustomMinutes")?.value,
         );
@@ -9470,7 +9581,8 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             ].focus();
           }
         });
-        overlay.querySelector("button").focus();
+        overlay.querySelector("button").focus({ preventScroll: true });
+        overlay.querySelector(".shinobi-finish-panel").scrollTop = 0;
       }
       function sportFinish() {
         const a = sport.active;
@@ -9525,6 +9637,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           sportSportChoice = "Musculation";
           sportPage = "home";
           sportRender();
+          const current =
+            document.querySelector("#trainingRoot details.sport-ex[open]") ||
+            document.querySelector("#trainingRoot .training-active-session");
+          current?.scrollIntoView({ block: "start", behavior: "smooth" });
+          current?.querySelector("summary")?.focus({ preventScroll: true });
         } else if (op === "weekDay") {
           sportEntryDate = b.dataset.date;
           if (sport.active) sport.active.date = sportEntryDate;
@@ -9730,7 +9847,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           return;
         }
         if (e.target.matches("[data-sport-discipline]")) {
-          sportSportChoice = e.target.value;
+          sportSportChoice = [
+            "Musculation",
+            "Autre",
+            ...SPORT_DISCIPLINES.map((d) => d.name),
+          ].includes(e.target.value)
+            ? e.target.value
+            : "Musculation";
           sportPage = "home";
           sportRender();
           return;
@@ -11668,6 +11791,8 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                 "exercise:" + sport.active.id + ":" + i;
               options.open = openState.get(options.dataset.easyFold) ?? false;
               options.innerHTML = "<summary>⚙️ Options de l’exercice</summary>";
+              const reference = el.querySelectorAll(":scope>.sport-note")[1];
+              if (reference) options.append(reference);
               if (actions) options.append(actions);
               extras.forEach((b) => b.remove());
               const ex = sport.active.exercises[i];
@@ -11690,6 +11815,10 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             const finish = root.querySelector('[data-sport="finish"]');
             if (finish) {
               const group = finish.parentElement;
+              group.insertAdjacentHTML(
+                "afterbegin",
+                '<p class="sport-muted" style="flex-basis:100%">Les changements de cette séance ne modifient pas ton programme de référence.</p>',
+              );
               group.before(finish);
               finish.classList.add("easy-finish");
               if (group.children.length)
@@ -11826,9 +11955,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             (shinobi ? icon("home") : icon("leaf")) +
             "</span>" +
             '<span class="universe-copy"><strong>' +
-            (shinobi ? "RPG LIFE" : "SHINOBI") +
+            (shinobi ? "VOIE DU MONARQUE" : "VOIE DU SHINOBI") +
             "</strong><small>" +
-            (shinobi ? "Retour à l’aventure" : "Entraînement") +
+            (shinobi ? "Accueil →" : "Village de Konoha →") +
             '</small></span><span class="universe-arrow" aria-hidden="true">' +
             (shinobi ? "↩" : "→") +
             "</span>";
@@ -11847,9 +11976,16 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           previousMode = shinobi;
         }
         trigger.addEventListener("click", () => {
-          if (document.body.classList.contains("shinobi-mode"))
+          if (document.body.classList.contains("shinobi-mode")) {
             document.querySelector(".sidebar [data-shinobi-return]").click();
-          else document.querySelector('.tab[data-tab="training"]').click();
+            window.rpgLifeNavigation.go("dashboard");
+          } else {
+            document.querySelector('.tab[data-tab="training"]').click();
+            if (!document.getElementById("shinobiPortal").hidden)
+              document.getElementById("shinobiPortalEnter").click();
+            sportPage = "village";
+            sportRender();
+          }
         });
         new MutationObserver(updateSwitch).observe(document.body, {
           attributes: true,
@@ -12258,7 +12394,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         layer.id = "rpgInbox";
         layer.hidden = true;
         layer.innerHTML =
-          '<div class="rpg-inbox-dialog" role="dialog" aria-modal="true" aria-labelledby="inboxTitle" tabindex="-1"><header><div><small>RPG LIFE · LE FIL DE TON AVENTURE</small><h2 id="inboxTitle">Mes nouveautés</h2></div><button type="button" data-inbox-close aria-label="Fermer la messagerie">✕</button></header><p>Retrouve tes nouveaux rangs, titres, missions, donjons et récompenses des deux univers.</p><button type="button" data-inbox-read-all>Tout marquer comme lu</button><div id="rpgInboxList"></div><p id="rpgInboxError" role="status"></p></div>';
+          '<div class="rpg-inbox-dialog" role="dialog" aria-modal="true" aria-labelledby="inboxTitle" tabindex="-1"><header><div><small>RPG LIFE · LE FIL DE TON AVENTURE</small><h2 id="inboxTitle">Mes nouveautés</h2></div><button type="button" data-inbox-close aria-label="Fermer la messagerie">✕</button></header><p>Retrouve tes nouveaux rangs, titres, missions, donjons et récompenses de cette voie.</p><button type="button" data-inbox-read-all>Tout marquer comme lu</button><div id="rpgInboxList"></div><p id="rpgInboxError" role="status"></p></div>';
         document.body.append(layer);
         const notice = document.createElement("div");
         notice.id = "rpgInboxNotice";
@@ -12400,10 +12536,35 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                 "training",
                 "gear",
               );
+          for (const tier of [1000, 2000, 3000, 5000])
+            if (sl.xp >= tier)
+              add(
+                "clan-tier:" + tier,
+                "Nouveaux clans disponibles",
+                {
+                  1000: "Nara · Akimichi · Yamanaka",
+                  2000: "Inuzuka · Aburame · Sarutobi",
+                  3000: "Hyûga · Senju · Uchiwa · Uzumaki",
+                  5000: "Ôtsutsuki",
+                }[tier],
+                "training",
+                "training",
+                "clan",
+              );
           return items;
         }
+        const isShinobi = () =>
+          document.body.classList.contains("shinobi-mode");
+        const belongs = (x) => (x.route === "training") === isShinobi();
         function render() {
-          const unread = state.items.filter((x) => !x.read).length;
+          const visible = state.items.filter(belongs);
+          layer.querySelector("header small").textContent = isShinobi()
+            ? "KONOHA · MESSAGERIE DU VILLAGE"
+            : "MONARQUE · MESSAGERIE DU CHASSEUR";
+          document.getElementById("inboxTitle").textContent = isShinobi()
+            ? "Nouvelles de Konoha"
+            : "Nouvelles du Monarque";
+          const unread = visible.filter((x) => !x.read).length;
           button.textContent = "✉ " + (unread ? Math.min(99, unread) : "");
           button.setAttribute(
             "aria-label",
@@ -12411,7 +12572,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           );
           button.setAttribute("aria-haspopup", "dialog");
           document.getElementById("rpgInboxList").innerHTML =
-            [...state.items]
+            [...visible]
               .reverse()
               .map(
                 (x) =>
@@ -12454,12 +12615,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             added.length &&
             persist({ ...state, items: [...state.items, ...added] })
           ) {
-            if (announce) {
+            const visibleAdded = added.filter(belongs);
+            if (announce && visibleAdded.length) {
               notice.textContent =
                 "✉ " +
-                added.length +
+                visibleAdded.length +
                 " nouveauté" +
-                (added.length > 1 ? "s" : "") +
+                (visibleAdded.length > 1 ? "s" : "") +
                 " à découvrir dans ta messagerie";
               notice.hidden = false;
               clearTimeout(announcementTimer);
@@ -12489,7 +12651,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           if (e.target.closest("[data-inbox-read-all]")) {
             persist({
               ...state,
-              items: state.items.map((x) => ({ ...x, read: true })),
+              items: state.items.map((x) =>
+                belongs(x) ? { ...x, read: true } : x,
+              ),
             });
             render();
             return;
@@ -12499,7 +12663,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           const item = state.items.find(
             (x) => x.id === action.dataset.inboxOpen,
           );
-          if (!item) return;
+          if (!item || !belongs(item)) return;
           if (
             !catalog().some((x) => x.id === item.id) &&
             ![
@@ -12532,15 +12696,21 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               if (!document.getElementById("shinobiPortal").hidden)
                 document.getElementById("shinobiPortalEnter").click();
             }
-            sportPage =
-              item.target === "clan"
-                ? "village"
-                : item.kind === "arc"
-                  ? "missions"
-                  : "progress";
+            const chooseClan =
+              item.id === "shinobi-clan-choice" ||
+              item.id.startsWith("clan-tier:");
+            sportPage = chooseClan
+              ? "village"
+              : item.target === "clan" || item.kind === "arc"
+                ? "missions"
+                : "progress";
             sportRender();
-            if (item.target === "clan")
+            if (chooseClan)
               document.querySelector("[data-clan-picker]")?.click();
+            else if (item.target === "clan")
+              window.konohaMissions?.show("clan");
+            else if (item.kind === "arc")
+              window.konohaMissions?.show("chronicle");
           } else {
             if (document.body.classList.contains("shinobi-mode"))
               document.querySelector("[data-shinobi-return]").click();
@@ -12595,6 +12765,14 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         document.addEventListener("rpg-life:changed", schedule);
         document.addEventListener("click", (e) => {
           if (e.target.closest("button")) schedule();
+        });
+        new MutationObserver(() => {
+          notice.hidden = true;
+          layer.hidden = true;
+          render();
+        }).observe(document.body, {
+          attributes: true,
+          attributeFilter: ["class"],
         });
         const previous = sportRender;
         sportRender = function (...args) {
@@ -12726,7 +12904,32 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         } catch {
           protectedState = true;
         }
-        const eligible = () => sportLevel().xp >= 1000;
+        const TIERS = {
+          nara: 1000,
+          akimichi: 1000,
+          yamanaka: 1000,
+          inuzuka: 2000,
+          aburame: 2000,
+          sarutobi: 2000,
+          hyuga: 3000,
+          senju: 3000,
+          uchiwa: 3000,
+          uzumaki: 3000,
+          otsutsuki: 5000,
+        };
+        const tierName = (xp) =>
+          ({ 1000: "Chûnin", 2000: "Jônin", 3000: "ANBU", 5000: "Kage" })[xp];
+        clans.forEach((c) => {
+          c.requiredXp = TIERS[c.id];
+          c.requiredRank = tierName(c.requiredXp);
+        });
+        clans.sort((a, b) => a.requiredXp - b.requiredXp);
+        const eligible = (id) =>
+          id
+            ? sportLevel().xp >= TIERS[id] ||
+              state.clan === id ||
+              !!window.rpgClanCampaign?.getState().clans[id]
+            : sportLevel().xp >= 1000;
         const chosen = () => clans.find((c) => c.id === state.clan) || null;
         function render() {
           const root = document.getElementById("trainingRoot");
@@ -12751,7 +12954,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                 : "🔒 Clan · Déblocage au grade Chûnin";
             hero.append(badge);
           }
-          if (!["village", "progress"].includes(sportPage)) return;
+          if (sportPage !== "progress") return;
           const box = document.createElement("section");
           box.dataset.shinobiClanUi = "panel";
           box.className = "sport-card konoha-clans";
@@ -12781,7 +12984,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             (selected
               ? "Découvrir les clans / changer de clan"
               : "Découvrir les clans") +
-            '</summary><p class="sport-muted">Une identité de personnage : aucun bonus d’XP, aucune modification des entraînements. Tu peux changer de clan à partir du grade Chûnin. Les Ôtsutsuki sont proposés comme lignée légendaire hors Konoha.</p><div class="konoha-clan-grid">' +
+            '</summary><p class="sport-muted">3 clans au grade Chûnin, 3 au grade Jônin, 4 au grade ANBU, puis les Ôtsutsuki au grade Kage. Chaque clan possède ses défis, son mentor et sa technique. Tes parcours sont conservés quand tu changes de clan. Aucun bonus d’XP.</p><div class="konoha-clan-grid">' +
             clans
               .map(
                 (c) =>
@@ -12799,18 +13002,20 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                   c.desc +
                   "</p><small>" +
                   c.members +
+                  " · Déblocage : " +
+                  c.requiredRank +
                   '</small><button type="button" data-clan-select="' +
                   c.id +
                   '" ' +
-                  (!ready || protectedState || selected?.id === c.id
+                  (!eligible(c.id) || protectedState || selected?.id === c.id
                     ? "disabled"
                     : "") +
                   ">" +
                   (selected?.id === c.id
                     ? "✓ Ton clan"
-                    : ready
+                    : eligible(c.id)
                       ? "Choisir " + c.name
-                      : "🔒 Grade Chûnin requis") +
+                      : "🔒 Grade " + c.requiredRank + " requis") +
                   "</button></article>",
               )
               .join("") +
@@ -12836,7 +13041,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         );
         document.addEventListener("click", (e) => {
           if (e.target.closest("[data-clan-picker]")) {
-            sportPage = "village";
+            sportPage = "progress";
             pickerOpen = true;
             sportRender();
             document
@@ -12845,9 +13050,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             return;
           }
           const button = e.target.closest("[data-clan-select]");
-          if (!button || !eligible() || protectedState) return;
+          if (!button || protectedState) return;
           const clan = clans.find((c) => c.id === button.dataset.clanSelect);
-          if (!clan || clan.id === state.clan) return;
+          if (!clan || !eligible(clan.id) || clan.id === state.clan) return;
           if (
             !confirm(
               (state.clan
@@ -13424,38 +13629,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         };
 
         const KEY = "rpg-life-clan-campaign-v1";
-        const missions = [
-          {
-            sessions: 1,
-            days: 1,
-            logs: 0,
-            text: "Enregistrer une nouvelle séance avec ce clan actif.",
-          },
-          {
-            sessions: 3,
-            days: 2,
-            logs: 0,
-            text: "Cumuler 3 séances sur au moins 2 jours différents avec ce clan.",
-          },
-          {
-            sessions: 4,
-            days: 2,
-            logs: 2,
-            text: "Cumuler 4 séances et au moins 2 séances renseignées : série cochée avec répétitions, ou durée pour un autre sport.",
-          },
-          {
-            sessions: 6,
-            days: 4,
-            logs: 2,
-            text: "Cumuler 6 séances sur au moins 4 jours différents.",
-          },
-          {
-            sessions: 10,
-            days: 7,
-            logs: 2,
-            text: "Cumuler 10 séances sur au moins 7 jours différents.",
-          },
-        ];
         let state = { version: 1, clans: {} },
           protectedState = false,
           busy = false;
@@ -13495,85 +13668,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             return false;
           }
         }
-        const CLAN_FOCUS = {
-          uchiwa: [
-            "records",
-            "records",
-            "repRecords",
-            "repeatSessions",
-            "records",
-          ],
-          senju: [
-            "newExercises",
-            "exerciseVariety",
-            "newExercises",
-            "repeatSessions",
-            "exerciseVariety",
-          ],
-          hyuga: [
-            "logs",
-            "repeatSessions",
-            "logs",
-            "repRecords",
-            "repeatSessions",
-          ],
-          uzumaki: [
-            "newSports",
-            "sportVariety",
-            "newExercises",
-            "sportVariety",
-            "newSports",
-          ],
-          sarutobi: [
-            "logs",
-            "sportVariety",
-            "repeatSessions",
-            "exerciseVariety",
-            "sportVariety",
-          ],
-          nara: [
-            "repeatSessions",
-            "logs",
-            "repeatSessions",
-            "repRecords",
-            "repeatSessions",
-          ],
-          akimichi: [
-            "repRecords",
-            "repeatSessions",
-            "repRecords",
-            "records",
-            "repRecords",
-          ],
-          yamanaka: [
-            "sportVariety",
-            "newSports",
-            "logs",
-            "sportVariety",
-            "newExercises",
-          ],
-          inuzuka: [
-            "newSports",
-            "sportVariety",
-            "newSports",
-            "repeatSessions",
-            "sportVariety",
-          ],
-          aburame: [
-            "newExercises",
-            "logs",
-            "newExercises",
-            "exerciseVariety",
-            "logs",
-          ],
-          otsutsuki: [
-            "newSports",
-            "newExercises",
-            "sportVariety",
-            "records",
-            "exerciseVariety",
-          ],
-        };
         const FOCUS_LABELS = {
           records: "record de charge enregistré",
           repRecords: "record de répétitions à charge identique",
@@ -13614,7 +13708,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               exerciseNames: [],
               repeat: false,
               logged: false,
-              type: normalize(s.type),
+              type: sportDisciplineKey(s.type),
             };
             const groups = new Map();
             if (s.type === "Musculation")
@@ -13684,39 +13778,159 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           }
           return events;
         }
+
+        const CLAN_PLANS = {
+          nara: [
+            ["repeatSessions", 1, "logs", 2],
+            ["days", 3, "logs", 4],
+            ["exerciseVariety", 4, "repeatSessions", 5],
+            ["monthSessions", 8, "logs", 12],
+            ["monthSessions", 10, "logs", 16],
+          ],
+          akimichi: [
+            ["repRecords", 1, "repeatSessions", 2],
+            ["benchKg", 40, "repRecords", 2],
+            ["benchKg", 60, "repRecords", 3],
+            ["benchKg", 80, "repRecords", 4],
+            ["benchKg", 100, "repRecords", 5],
+          ],
+          yamanaka: [
+            ["newSports", 1, "sportVariety", 2],
+            ["exerciseVariety", 3, "newExercises", 2],
+            ["sportVariety", 3, "newExercises", 3],
+            ["newSports", 2, "exerciseVariety", 6],
+            ["sportVariety", 4, "exerciseVariety", 8],
+          ],
+          inuzuka: [
+            ["runKm", 2, "cardioMinutes", 20],
+            ["runKm", 4, "cardioMinutes", 30],
+            ["runKm", 6, "cardioMinutes", 40],
+            ["runKm", 8, "cardioMinutes", 50],
+            ["runKm", 10, "cardioMinutes", 60],
+          ],
+          aburame: [
+            ["newExercises", 1, "exerciseVariety", 3],
+            ["logs", 5, "repeatSessions", 5],
+            ["exerciseVariety", 5, "logs", 8],
+            ["repeatSessions", 8, "logs", 12],
+            ["monthSessions", 15, "logs", 20],
+          ],
+          sarutobi: [
+            ["rowMinutes", 10, "cardioMinutes", 20],
+            ["sportVariety", 2, "exerciseVariety", 4],
+            ["rowMinutes", 20, "cardioMinutes", 35],
+            ["sportVariety", 3, "exerciseVariety", 6],
+            ["monthSessions", 15, "logs", 20],
+          ],
+          hyuga: [
+            ["logs", 3, "repeatSessions", 3],
+            ["repRecords", 2, "logs", 7],
+            ["repeatSessions", 8, "logs", 10],
+            ["repRecords", 4, "logs", 15],
+            ["exerciseVariety", 10, "logs", 22],
+          ],
+          senju: [
+            ["newExercises", 2, "exerciseVariety", 4],
+            ["exerciseVariety", 5, "logs", 8],
+            ["days", 8, "logs", 12],
+            ["monthSessions", 15, "logs", 22],
+            ["monthSessions", 20, "logs", 28],
+          ],
+          uchiwa: [
+            ["records", 1, "repRecords", 2],
+            ["records", 2, "repRecords", 3],
+            ["benchKg", 80, "records", 3],
+            ["benchKg", 100, "records", 4],
+            ["records", 5, "repRecords", 7],
+          ],
+          uzumaki: [
+            ["newSports", 1, "sportVariety", 2],
+            ["runKm", 5, "cardioMinutes", 35],
+            ["monthSessions", 10, "logs", 14],
+            ["monthSessions", 15, "logs", 22],
+            ["monthSessions", 20, "logs", 28],
+          ],
+          otsutsuki: [
+            ["sportVariety", 3, "exerciseVariety", 6],
+            ["doubleDay", 2, "days", 8],
+            ["rowMinutes", 30, "cardioMinutes", 60],
+            ["runKm", 10, "cardioMinutes", 75],
+            ["monthSessions", 20, "logs", 30],
+          ],
+        };
+        Object.assign(FOCUS_LABELS, {
+          days: "jours d’entraînement différents",
+          monthSessions: "séances dans une fenêtre de 30 jours",
+          benchKg: "kg au développé couché barre (série validée)",
+          rowMinutes: "minutes de rameur sur une séance",
+          runKm: "km de course sur une séance",
+          cardioMinutes: "minutes de cardio sur une séance",
+          doubleDay: "séances enregistrées dans une même journée",
+        });
+        function clanGoal(key, n) {
+          const labels = {
+            records: ["record de charge", "records de charge"],
+            repRecords: [
+              "record de répétitions à charge identique",
+              "records de répétitions à charge identique",
+            ],
+            newExercises: [
+              "nouvel exercice renseigné",
+              "nouveaux exercices renseignés",
+            ],
+            newSports: [
+              "nouveau sport découvert",
+              "nouveaux sports découverts",
+            ],
+            exerciseVariety: [
+              "exercice différent renseigné",
+              "exercices différents renseignés",
+            ],
+            sportVariety: [
+              "sport différent pratiqué",
+              "sports différents pratiqués",
+            ],
+            repeatSessions: [
+              "séance avec un exercice déjà pratiqué",
+              "séances avec un exercice déjà pratiqué",
+            ],
+            logs: ["séance renseignée", "séances renseignées"],
+            days: ["jour d’entraînement", "jours d’entraînement"],
+          };
+          if (key === "monthSessions")
+            return n + " séances dans une fenêtre de 30 jours";
+          if (key === "benchKg")
+            return n + " kg au développé couché barre sur une série validée";
+          if (key === "rowMinutes")
+            return n + " minutes de rameur sur une séance";
+          if (key === "cardioMinutes")
+            return n + " minutes de cardio sur une séance";
+          if (key === "runKm") return n + " km de course sur une séance";
+          if (key === "doubleDay") return n + " séances dans une même journée";
+          return n + " " + labels[key][n === 1 ? 0 : 1];
+        }
         function missionFor(id, index) {
-          const base = missions[index];
-          if (!base) return null;
-          const focus = CLAN_FOCUS[id][index],
-            target =
-              focus === "exerciseVariety"
-                ? Math.min(index + 1, 3)
-                : focus === "sportVariety"
-                  ? 2
-                  : focus === "logs"
-                    ? index + 1
-                    : focus === "repeatSessions"
-                      ? Math.min(index + 1, 3)
-                      : 1;
-          const fallback = index + 1;
+          const plan = CLAN_PLANS[id]?.[index];
+          if (!plan) return null;
+          const tier = rpgClans.catalog().find((c) => c.id === id).requiredXp;
+          const totals =
+            tier === 1000
+              ? [1, 3, 5, 8, 10]
+              : tier === 2000
+                ? [2, 5, 8, 12, 15]
+                : tier === 3000
+                  ? [3, 6, 10, 15, 20]
+                  : [4, 8, 12, 16, 20];
+          const [focus, target, alternative, fallback] = plan;
           return {
-            ...base,
+            sessions: totals[index],
+            days: Math.min(totals[index], index + 1),
+            logs: 0,
             focus,
             target,
+            alternative,
             fallback,
-            text:
-              base.text +
-              " Objectif " +
-              rpgClans.catalog().find((c) => c.id === id).name +
-              " : " +
-              target +
-              " " +
-              FOCUS_LABELS[focus] +
-              (focus === "logs"
-                ? "."
-                : " — ou " +
-                  fallback +
-                  " séance(s) renseignée(s), sans record imposé."),
+            text: `Avec ce clan actif : ${totals[index]} séances sur au moins ${Math.min(totals[index], index + 1)} jour${Math.min(totals[index], index + 1) > 1 ? "s" : ""}. Défi : ${clanGoal(focus, target)}. Alternative : ${clanGoal(alternative, fallback)}.`,
           };
         }
         function finishCard(session, overlay) {
@@ -13744,8 +13958,26 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               "</h3><p>" +
               (index === 5
                 ? "Tes séances continuent de faire progresser ton parcours sportif."
-                : safe(missionFor(id, index).text)) +
+                : "Cette séance fait avancer ton épreuve avec " +
+                  safe(story.mentor) +
+                  ".") +
               "</p>";
+          if (index < 5) {
+            const q = missionFor(id, index),
+              m = metrics(id);
+            card.innerHTML +=
+              '<p class="clan-finish-progress">Avec ' +
+              safe(story.mentor) +
+              " · " +
+              Math.min(m.sessions, q.sessions) +
+              "/" +
+              q.sessions +
+              " séances · " +
+              Math.min(m.days, q.days) +
+              "/" +
+              q.days +
+              " jours.</p>";
+          }
           const details = [];
           if (ev?.records.length)
             details.push(
@@ -13771,13 +14003,32 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               '<div class="clan-session-highlights">' +
               details.map((x) => "<p>" + x + "</p>").join("") +
               "</div>";
+          if (index < 5 && !canRead)
+            card.innerHTML +=
+              '<details class="clan-finish-goal"><summary>Voir le défi et ma progression</summary><p>' +
+              safe(missionFor(id, index).text) +
+              "</p><p>" +
+              safe(
+                clanGoal(
+                  missionFor(id, index).focus,
+                  metrics(id)[missionFor(id, index).focus],
+                ),
+              ) +
+              " · alternative : " +
+              safe(
+                clanGoal(
+                  missionFor(id, index).alternative,
+                  metrics(id)[missionFor(id, index).alternative],
+                ),
+              ) +
+              "</p></details>";
           const close = overlay.querySelector("#shinobiFinishClose");
           close.before(card);
           card
             .querySelector("[data-clan-finish-read]")
             ?.addEventListener("click", () => {
               close.click();
-              sportPage = "village";
+              sportPage = "missions";
               sportRender();
               const claim = document.querySelector("[data-clan-claim]");
               if (
@@ -13836,8 +14087,67 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             newSports += e.newSports.length;
             if (e.repeat) repeatSessions++;
           }
+          const perDay = new Map();
+          let benchKg = 0,
+            rowMinutes = 0,
+            runKm = 0,
+            cardioMinutes = 0;
+          for (const s of records) {
+            perDay.set(s.date, (perDay.get(s.date) || 0) + 1);
+            const type = sportDisciplineKey(s.type);
+            const mins = Number(s.minutes) || 0;
+            if (type === "rameur" || /rameur|rowing/.test(type))
+              rowMinutes = Math.max(rowMinutes, mins);
+            if (
+              SPORT_DISCIPLINES.some(
+                (d) => sportDisciplineKey(d.name) === type,
+              ) ||
+              /course|running|jogging|run\b|rameur|rowing|velo|cycl|natation|swim|elliptique/.test(
+                type,
+              )
+            )
+              cardioMinutes = Math.max(cardioMinutes, mins);
+            const raw = String(s.distance || "")
+              .trim()
+              .replace(",", ".");
+            const km = /^\d+(?:\.\d+)?(?:\s*km)?$/i.test(raw)
+              ? parseFloat(raw)
+              : 0;
+            if (
+              type === "course a pied" ||
+              /course|running|jogging|run\b/.test(type)
+            )
+              runKm = Math.max(runKm, km);
+            for (const ex of s.exercises || [])
+              if (
+                /developpe couche|bench press/.test(normalize(ex.name)) &&
+                !/haltere|dumbbell|machine|incline|decline/.test(
+                  normalize(ex.name),
+                )
+              ) {
+                for (const set of ex.sets || [])
+                  if (set.done && Number(set.reps) > 0 && Number(set.kg) >= 0)
+                    benchKg = Math.max(benchKg, Number(set.kg));
+              }
+          }
+          const dates = records
+            .map((s) => Date.parse(s.date + "T12:00:00Z"))
+            .filter(Number.isFinite)
+            .sort((a, b) => a - b);
+          let monthSessions = 0,
+            left = 0;
+          for (let right = 0; right < dates.length; right++) {
+            while (dates[right] - dates[left] >= 30 * 86400000) left++;
+            monthSessions = Math.max(monthSessions, right - left + 1);
+          }
           return {
             sessions: records.length,
+            benchKg,
+            rowMinutes,
+            runKm,
+            cardioMinutes,
+            monthSessions,
+            doubleDay: Math.max(0, ...perDay.values()),
             days: new Set(records.map((s) => s.date)).size,
             logs,
             records: recordCount,
@@ -13857,7 +14167,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             m.sessions >= q.sessions &&
             m.days >= q.days &&
             m.logs >= q.logs &&
-            (m[q.focus] >= q.target || m.logs >= q.fallback)
+            (m[q.focus] >= q.target || m[q.alternative] >= q.fallback)
           );
         }
 
@@ -13896,7 +14206,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             (index + 1) +
             " · " +
             safe(c[0]) +
-            '</small><p class="clan-narration">' +
+            '</small><p class="clan-mentor-objective"><b>' +
+            safe(story.mentor) +
+            " · Ton épreuve</b> " +
+            safe(missionFor(id, index).text) +
+            '</p><p class="clan-narration">' +
             safe(c[2]) +
             "</p>" +
             [
@@ -13943,7 +14257,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               "/5";
             hero.append(tag);
           }
-          if (!["village", "progress"].includes(sportPage)) return;
+          if (!["missions"].includes(sportPage)) return;
           const box = document.createElement("section");
           box.dataset.clanCampaignUi = "panel";
           box.className = "sport-card clan-campaign";
@@ -14021,10 +14335,11 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                 (mission.focus === "logs"
                   ? ""
                   : " · alternative : " +
-                    Math.min(m.logs, mission.fallback) +
+                    Math.min(m[mission.alternative], mission.fallback) +
                     "/" +
                     mission.fallback +
-                    " séances renseignées") +
+                    " " +
+                    FOCUS_LABELS[mission.alternative]) +
                 '</p><button type="button" data-clan-claim ' +
                 (!canClaim ? "disabled" : "") +
                 ">" +
@@ -14033,7 +14348,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                   : "Mission en cours") +
                 "</button></div>"
               : '<p class="clan-complete">✦ Campagne terminée · apparence et titre ultimes débloqués.</p>') +
-            '<p class="sport-muted">Seules les nouvelles séances enregistrées pendant que ce clan est actif comptent. Musculation et autres sports sont acceptés. Ces objectifs sont cumulés : pas de série de jours consécutifs, pas de record exigé. Respecte ton programme et tes jours de repos. Aucun bonus d’XP ni de force.</p>' +
+            '<details class="clan-rules"><summary>Comment progressent mes missions ?</summary><p class="sport-muted">Seules les nouvelles séances enregistrées pendant que ce clan est actif comptent. Musculation et autres sports sont acceptés. Les défis de charge, de distance et de double séance ont une alternative. Une double séance peut associer musculation et mobilité ; ne multiplie pas les séances intenses. Les objectifs sur un mois utilisent ta meilleure fenêtre de 30 jours. Charge = poids total renseigné, distance = km du formulaire Autre sport. Respecte tes jours de repos. Aucun bonus d’XP.</p></details>' +
             (count
               ? scene(id, Math.min(sceneViewed[id] ?? count - 1, count - 1))
               : "") +
@@ -14078,7 +14393,9 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               ? "La sauvegarde du parcours est illisible. Les données originales sont protégées. Exporte une sauvegarde avant réparation."
               : "") +
             "</p>";
-          const anchor = root.querySelector(".konoha-clans");
+          const anchor = root
+            .querySelector(".shinobi-quest-list")
+            ?.closest(".sport-card");
           if (anchor) anchor.after(box);
           else root.append(box);
         }
@@ -14424,6 +14741,536 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         };
         window.rpgFeast = { info, weekOf, refresh: renderFeast };
         renderFeast();
+      })();</script
+    ><style id="konoha-refactor-style">
+#trainingRoot .training-hero.village-compact{min-height:0!important;padding:8px 0 14px!important;margin:0!important;background:none!important;border:0!important;box-shadow:none!important}
+#trainingRoot .village-compact h2{font-size:25px!important;margin:0!important;line-height:1.2!important}
+#trainingRoot .village-compact::before,#trainingRoot .village-compact::after,#trainingRoot .village-compact .konoha-clan-badge,#trainingRoot .village-compact .clan-technique-badge{display:none!important}
+#trainingRoot .konoha-profile-info .village-profile-secondary{font-size:12px;color:#a8c1b6;margin:10px 0}
+#trainingRoot .konoha-profile .village-clan-link{font-size:12px;background:transparent;border-color:#355d4c;padding:7px 10px;min-height:44px}
+#trainingRoot .konoha-activity{margin:12px 0;gap:10px}#trainingRoot .konoha-activity>div{padding:14px 16px}#trainingRoot .konoha-activity strong{font-size:30px}
+#trainingRoot .village-adventure{padding:18px!important;border-color:var(--clan-color,#477a64);margin-top:14px}
+.village-adventure>small{color:var(--clan-color,#a3d5ba);font-size:11px;letter-spacing:.8px}.village-adventure h3{font-size:21px;margin:10px 0;overflow-wrap:anywhere}.village-adventure p{font-size:13px;color:#c1d6c9}.village-adventure>button{background:#20543d;color:#e6fff0;border:1px solid #75c49a;border-radius:10px;padding:12px;min-height:46px;width:100%;margin-top:10px;font:inherit;font-size:14px;cursor:pointer}.village-mission-count{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin:14px 0 9px}.village-goal{font-size:12px;margin-top:12px}.village-goal summary{padding:10px 0;cursor:pointer}
+
+      #trainingRoot .training-hero.training-compact {
+        min-height: 0 !important;
+        padding: 12px 2px !important;
+        margin: 0 0 12px !important;
+        background: none !important;
+        border: 0 !important;
+        box-shadow: none !important;
+      }
+      #trainingRoot .training-compact h2 {
+        font-size: 25px !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+      }
+      #trainingRoot .training-compact::after,
+      #trainingRoot .training-compact::before,
+      #trainingRoot .training-compact .konoha-clan-badge,
+      #trainingRoot .training-compact .clan-technique-badge {
+        display: none !important;
+      }
+      #trainingRoot .training-program-card {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 17px !important;
+        margin: 0 !important;
+        min-width: 0;
+      }
+      #trainingRoot .training-program-card > div:first-child {
+        flex: 1;
+        min-width: 120px;
+      }
+      #trainingRoot .training-program-card h3 {
+        font-size: 18px;
+        margin: 0 0 7px;
+        overflow-wrap: anywhere;
+      }
+      #trainingRoot .training-program-card p {
+        font-size: 13px;
+        margin: 0;
+        color: #b7ceca;
+      }
+      #trainingRoot .training-program-card > .sport-actions {
+        flex-basis: 100%;
+      }
+      #trainingRoot .training-program-card > .primary {
+        min-height: 46px;
+        margin: 0;
+      }
+      .training-management {
+        margin: 16px 0;
+      }
+      .training-management > .sport-actions {
+        padding: 12px;
+      }
+      #trainingRoot .training-resume {
+        border-color: #65d8aa;
+        background: linear-gradient(125deg, #153e31, #102528);
+        padding: 18px !important;
+      }
+      .training-resume small {
+        color: #9fd7ba;
+        font-size: 11px;
+        letter-spacing: 0.8px;
+      }
+      .training-resume h3 {
+        margin: 10px 0;
+        font-size: 23px;
+        overflow-wrap: anywhere;
+      }
+      .training-resume p {
+        font-size: 13px;
+        color: #c0d7cb;
+      }
+      .training-resume > .primary {
+        width: 100%;
+        min-height: 48px;
+      }
+      .training-current-exercise {
+        margin: 12px 0;
+      }
+      .training-session-settings {
+        margin-bottom: 16px;
+      }
+      .training-session-settings .sport-launch {
+        margin: 0 !important;
+      }
+      #trainingRoot .training-active-session h2 {
+        font-size: 21px;
+      }
+      .training-active-session details.sport-ex {
+        scroll-margin-top: 90px;
+      }
+      .clan-finish-progress {
+        padding: 10px;
+        background: #1b4531;
+        border-radius: 9px;
+        color: #d5ffe4;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .clan-finish-goal {
+        font-size: 13px;
+        margin: 12px 0;
+      }
+      .clan-finish-goal summary {
+        padding: 10px;
+        cursor: pointer;
+      }
+      @media (max-width: 420px) {
+        #trainingRoot .training-program-card {
+          gap: 10px;
+        }
+        #trainingRoot .training-compact h2 {
+          font-size: 23px !important;
+        }
+      }
+
+      .konoha-activity {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 14px 0 24px;
+      }
+      .konoha-activity > div {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 18px;
+        background: linear-gradient(135deg, #163b30, #0a1d20);
+        border: 1px solid #386d57;
+        border-radius: 15px;
+      }
+      .konoha-activity small {
+        color: #b7dbc8;
+        font-size: 14px;
+      }
+      .konoha-activity strong {
+        font-size: 36px;
+        line-height: 1;
+        color: #c4ffe0;
+      }
+      .konoha-activity span {
+        font-size: 12px;
+        color: #abc4ba;
+      }
+      @media (max-width: 360px) {
+        .konoha-activity {
+          gap: 8px;
+        }
+        .konoha-activity > div {
+          padding: 13px;
+        }
+        .konoha-activity small {
+          font-size: 12px;
+        }
+      }
+
+      #trainingRoot [data-mission-panel][hidden] {
+        display: none !important;
+      }
+      .konoha-mission-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+        margin: 14px 0;
+      }
+      #trainingRoot .konoha-mission-tabs button {
+        background: #0d2624;
+        border: 1px solid #315d50;
+        color: #b2d3c5;
+        padding: 12px 5px;
+        border-radius: 10px;
+        min-height: 48px;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      #trainingRoot .konoha-mission-tabs button[aria-selected="true"] {
+        border-color: #8df0c5;
+        color: #effff7;
+        background: #1e4c3b;
+        box-shadow: inset 0 -2px #8df0c5;
+      }
+      @media (max-width: 360px) {
+        #trainingRoot .konoha-mission-tabs button {
+          font-size: 11px;
+        }
+      }
+
+      #trainingRoot .konoha-profile {
+        display: grid;
+        grid-template-columns: 140px minmax(0, 1fr);
+        align-items: center;
+        gap: 24px;
+        border-color: var(--clan-color) !important;
+        background:
+          radial-gradient(ellipse at 0 50%, #295b4f55, transparent 65%), #091c1b !important;
+      }
+      .konoha-portrait svg {
+        display: block;
+        width: 100%;
+        max-height: 210px;
+        filter: drop-shadow(0 0 12px #48c99b22);
+      }
+      .konoha-profile-info small {
+        color: var(--clan-color);
+        font-size: 11px;
+        letter-spacing: 1px;
+      }
+      .konoha-profile-info h2 {
+        font-size: 28px;
+        margin: 8px 0 14px;
+        overflow-wrap: anywhere;
+      }
+      .konoha-profile-info p {
+        font-size: 13px;
+        color: #c1d8d0;
+      }
+      .konoha-profile-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .konoha-profile-badges b {
+        padding: 8px 10px;
+        border: 1px solid #3e6a59;
+        border-radius: 9px;
+        font-size: 13px;
+      }
+      .konoha-profile-badges button {
+        min-height: 40px;
+      }
+      .clan-mentor-objective {
+        padding: 12px;
+        border-left: 2px solid var(--clan-color);
+        font-size: 13px;
+      }
+      .clan-mentor-objective b {
+        display: block;
+        margin-bottom: 6px;
+      }
+      @media (max-width: 850px) {
+        .topbar h1 {
+          position: absolute !important;
+          width: 1px !important;
+          height: 1px !important;
+          overflow: hidden !important;
+          clip-path: inset(50%) !important;
+          white-space: nowrap !important;
+          padding: 0 !important;
+          margin: -1px !important;
+          flex-basis: 0 !important;
+        }
+        .topbar {
+          display: flex !important;
+          flex-wrap: nowrap !important;
+          gap: 8px !important;
+          align-items: center !important;
+        }
+        .topbar .date {
+          display: none !important;
+        }
+        .topbar .mobile-universe-trigger {
+          order: 0 !important;
+          margin: 0 auto 0 0 !important;
+          flex: 1 !important;
+          justify-content: flex-start !important;
+          max-width: 290px;
+          min-width: 0 !important;
+        }
+        .topbar .rpg-audio-quick {
+          order: 1 !important;
+          flex: 0 0 44px !important;
+          margin: 0 !important;
+        }
+        .topbar .rpg-inbox-button {
+          order: 2 !important;
+          flex: 0 0 44px !important;
+          margin: 0 !important;
+        }
+        .mobile-universe-trigger .universe-copy strong {
+          font-size: 11px !important;
+          letter-spacing: 0.3px !important;
+        }
+        .mobile-universe-trigger .universe-copy small {
+          font-size: 11px !important;
+        }
+        .mobile-universe-trigger .universe-seal {
+          width: 29px !important;
+          height: 29px !important;
+          flex: 0 0 29px !important;
+        }
+        .konoha-profile {
+          grid-template-columns: 92px minmax(0, 1fr);
+          gap: 12px;
+          padding: 14px !important;
+        }
+        .konoha-profile-info h2 {
+          font-size: 23px;
+        }
+        .konoha-profile-badges {
+          gap: 5px;
+        }
+        .konoha-profile-badges b {
+          font-size: 12px;
+          padding: 6px;
+        }
+        .konoha-profile-info p {
+          font-size: 12px;
+        }
+        .konoha-profile-info > button {
+          width: 100%;
+          font-size: 12px;
+        }
+      }
+      @media (max-width: 360px) {
+        .konoha-profile {
+          grid-template-columns: 72px minmax(0, 1fr);
+          gap: 8px;
+        }
+        .mobile-universe-trigger .universe-seal {
+          display: none !important;
+        }
+        .mobile-universe-trigger .universe-copy strong {
+          font-size: 10px !important;
+        }
+      }
+      #trainingRoot .konoha-profile button {
+        border: 1px solid #487c69;
+        border-radius: 9px;
+        background: #15392f;
+        color: #e0fff0;
+        padding: 9px 11px;
+        min-height: 44px;
+        cursor: pointer;
+      }
+      #trainingRoot:has([data-konoha-profile])
+        .training-hero
+        .konoha-clan-badge,
+      #trainingRoot:has([data-konoha-profile])
+        .training-hero
+        .clan-technique-badge {
+        display: none;
+      }</style
+    ><script id="konoha-profile-script">
+      (() => {
+        "use strict";
+        const safe = (v) =>
+          String(v).replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
+        function avatar(color) {
+          return `<svg viewBox="0 0 160 200" role="img" aria-label="Ton personnage Shinobi en tenue de ninja" style="--ninja:${color}"><circle cx="80" cy="100" r="67" fill="var(--ninja)" opacity=".08"/><circle cx="80" cy="100" r="62" fill="none" stroke="var(--ninja)" opacity=".35"/><path d="M120 59 148 35l-8 41-32 20" fill="var(--ninja)" opacity=".65"/><path d="m57 130-25 56h96l-25-56" fill="#122e31" stroke="var(--ninja)"/><path d="m61 128 19 24 19-24 10 55H51Z" fill="#1d4746" stroke="#82b2a4"/><path d="M65 149h30v26H65Z" fill="#102b2d" stroke="var(--ninja)"/><path d="m52 66 4-28 24-14 26 15 5 29-9 44-22 21-24-21Z" fill="#102026" stroke="var(--ninja)"/><path d="m50 56 6-23 14-4 9-14 8 15 18 1 9 29" fill="#07141f" stroke="var(--ninja)"/><path d="M53 56h55v23H53Z" fill="#43616a" stroke="#a2c2c6"/><path d="m82 61-11 9h18l-7-9Zm-2 5 2 5" fill="none" stroke="#d2eff0" stroke-width="2"/><path d="m59 84 14 4m13 0 14-4" stroke="var(--ninja)" stroke-width="3"/><path d="m57 96 23-7 24 7-5 18-19 15-19-15Z" fill="#17383d" stroke="#4f7c7f"/><path d="m45 141-13 45 17-1 15-45m48 0 16 45-16-1-15-45" fill="#102d32" stroke="var(--ninja)"/><path d="m43 194 25-8m50 8-25-8" stroke="var(--ninja)" stroke-width="3"/></svg>`;
+        }
+        let missionView = null;
+        function missionTabs(root, clan) {
+          if (sportPage !== "missions") return;
+          const active = missionView || (clan ? "clan" : "chronicle");
+          const panels = {
+            chronicle: root.querySelector(".shinobi-arc"),
+            characters: root
+              .querySelector(".shinobi-quest-list")
+              ?.closest(".sport-card"),
+            clan: root.querySelector(".clan-campaign,.clan-mission-empty"),
+          };
+          const nav = document.createElement("nav");
+          nav.className = "konoha-mission-tabs";
+          nav.setAttribute("role", "tablist");
+          nav.setAttribute("aria-label", "Catégories de missions");
+          nav.innerHTML = [
+            ["chronicle", "📖 Chroniques"],
+            ["characters", "🎯 Personnages"],
+            ["clan", "🍃 Mon clan"],
+          ]
+            .map(
+              ([id, name]) =>
+                `<button type="button" id="mission-tab-${id}" role="tab" aria-selected="${id === active}" aria-controls="mission-panel-${id}" tabindex="${id === active ? 0 : -1}" data-mission-view="${id}">${name}</button>`,
+            )
+            .join("");
+          root.querySelector(".training-nav").after(nav);
+          for (const [key, panel] of Object.entries(panels))
+            if (panel) {
+              panel.dataset.missionPanel = key;
+              panel.id = "mission-panel-" + key;
+              panel.setAttribute("role", "tabpanel");
+              panel.setAttribute("aria-labelledby", "mission-tab-" + key);
+              panel.hidden = key !== active;
+            }
+        }
+        function render() {
+          const root = document.getElementById("trainingRoot");
+          if (!root) return;
+          root
+            .querySelectorAll(
+              "[data-konoha-profile],[data-konoha-activity],[data-village-adventure],.clan-mission-empty",
+            )
+            .forEach((e) => e.remove());
+          const clan = rpgClans
+              .catalog()
+              .find((c) => c.id === rpgClans.getState().clan),
+            l = sportLevel(),
+            campaign = rpgClanCampaign.getState().clans[clan?.id],
+            stage = campaign?.claimed.length || 0;
+          if (sportPage === "missions" && !clan) {
+            const box = document.createElement("section");
+            box.className = "sport-card clan-mission-empty";
+            box.innerHTML =
+              "<h2>🍃 Missions de clan</h2><p>Choisis ton clan dans Progression pour rencontrer ton mentor et découvrir ses cinq épreuves.</p><button data-clan-picker>Choisir mon clan →</button>";
+            root.append(box);
+          }
+          missionTabs(root, clan);
+          if (sportPage !== "village") return;
+          const hero=root.querySelector(".training-hero");
+          if(hero){hero.classList.add("village-compact");hero.innerHTML='<h2>🏯 Village de Konoha</h2>';}
+          const name = window.rpgLifeAdventure?.getState().name || "Shinobi";
+          const profile = document.createElement("section");
+          profile.dataset.konohaProfile = "";
+          profile.className = "sport-card konoha-profile";
+          profile.style.setProperty("--clan-color", clan?.color || "#79e3bd");
+          profile.innerHTML = `<div class="konoha-portrait">${avatar(clan?.color || "#79e3bd")}</div><div class="konoha-profile-info"><small>MON SHINOBI</small><h2>${safe(name)}</h2><div class="konoha-profile-badges"><b>Niveau ${l.lv}</b><b>${safe(l.rank)}</b>${clan?"<b>"+clan.icon+" "+safe(clan.name)+"</b>":""}</div><p class="village-profile-secondary">${l.xp} pts de maîtrise · ${200-l.xp%200} avant le prochain niveau</p><div class="shinobi-chakra" role="progressbar" aria-label="Progression vers le prochain niveau Shinobi" aria-valuemin="0" aria-valuemax="200" aria-valuenow="${l.xp%200}"><div style="width:${l.xp%200/2}%"></div></div><p class="village-profile-secondary">${sport.sessions.length} séance${sport.sessions.length===1?"":"s"} au total</p><button class="village-clan-link" data-clan-picker>${clan?"Changer de clan":"Choisir mon clan"} →</button></div>`;
+          root.querySelector(".training-nav").after(profile);
+          const activity = sportVillageActivity();
+          const summary = document.createElement("section");
+          summary.className = "konoha-activity";
+          summary.dataset.konohaActivity = "";
+          summary.setAttribute("aria-label", "Mes séances enregistrées");
+          summary.innerHTML = `<div><small>Cette semaine</small><strong data-activity-week>${activity.week}</strong><span>séance${activity.week === 1 ? "" : "s"} · depuis lundi</span></div><div><small>Ce mois-ci</small><strong data-activity-month>${activity.month}</strong><span>séance${activity.month === 1 ? "" : "s"} · mois en cours</span></div>`;
+          profile.after(summary);
+          const adventure=document.createElement("section");adventure.dataset.villageAdventure="";adventure.className="sport-card village-adventure";
+          if(clan){
+            const story=rpgClanCampaign.stories()[clan.id],complete=stage>=5,mission=complete?null:rpgClanCampaign.mission(clan.id,stage),metrics=complete?null:rpgClanCampaign.metrics(clan.id),ready=!complete&&rpgClanCampaign.ready(clan.id,stage);
+            adventure.style.setProperty("--clan-color",clan.color);
+            adventure.innerHTML=`<small>${complete?"PARCOURS ACCOMPLI":ready?"✦ SCÈNE DISPONIBLE":"MA PROCHAINE ÉTAPE"}</small><h3>${safe(complete?story.title:story.chapters[stage][0])}</h3><p>${safe(story.mentor)} ${complete?"salue ton parcours.":ready?"a une nouvelle scène pour toi.":"t’attend."} · ${complete?"5/5 épreuves":`Épreuve ${stage+1}/5`}</p>${complete?'<p>Ta technique est éveillée. Retrouve tes scènes dans le journal du clan.</p>':`<div class="village-mission-count"><strong>${Math.min(metrics.sessions,mission.sessions)}/${mission.sessions} séances</strong><span>${Math.min(metrics.days,mission.days)}/${mission.days} jours</span></div><div class="shinobi-chakra"><div style="width:${Math.min(100,metrics.sessions/mission.sessions*100)}%"></div></div><details class="village-goal"><summary>Voir l’objectif de l’épreuve</summary><p>${safe(mission.text)}</p><p>Défi : ${Math.min(metrics[mission.focus],mission.target)}/${mission.target} · alternative : ${Math.min(metrics[mission.alternative],mission.fallback)}/${mission.fallback}</p></details>`}<button data-konoha-missions>${complete?"Relire mon aventure":ready?"Découvrir la scène":"Continuer mon aventure"} →</button>`;
+          }else{
+            const arc=[...SHINOBI_ARCS].reverse().find(a=>l.lv>=a.level)||SHINOBI_ARCS[0];
+            adventure.innerHTML=`<small>MA PROCHAINE ÉTAPE</small><h3>${safe(arc.name)}</h3><p>${safe(arc.mentor)} t’accompagne dans les Chroniques du Shinobi.</p><p class="sport-muted">Les premiers clans se débloquent au grade Chûnin. En attendant, ton histoire avance avec tes séances.</p><button data-konoha-chronicle>Ouvrir les Chroniques →</button>`;
+          }
+          summary.after(adventure);
+        }
+        document.addEventListener(
+          "click",
+          (e) => {
+            if (e.target.closest("[data-clan-finish-read]"))
+              missionView = "clan";
+          },
+          true,
+        );
+        document.addEventListener("keydown", (e) => {
+          const tab = e.target.closest("[data-mission-view]");
+          if (
+            !tab ||
+            !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+          )
+            return;
+          e.preventDefault();
+          const ids = ["chronicle", "characters", "clan"],
+            i = ids.indexOf(tab.dataset.missionView);
+          missionView =
+            ids[
+              e.key === "Home"
+                ? 0
+                : e.key === "End"
+                  ? 2
+                  : (i + (e.key === "ArrowRight" ? 1 : 2)) % 3
+            ];
+          sportRender();
+          document
+            .querySelector('[data-mission-view="' + missionView + '"]')
+            ?.focus();
+        });
+        window.konohaMissions = {
+          show(view = "clan") {
+            missionView = view;
+            sportPage = "missions";
+            sportRender();
+          },
+        };
+        document.addEventListener("click", (e) => {
+          if(e.target.closest("[data-konoha-chronicle]")){window.konohaMissions.show("chronicle");window.scrollTo({top:0,behavior:"smooth"});return;}
+          const tab = e.target.closest("[data-mission-view]");
+          if (tab) {
+            missionView = tab.dataset.missionView;
+            sportRender();
+            document
+              .querySelector('[data-mission-view="' + missionView + '"]')
+              ?.focus();
+            return;
+          }
+          if (e.target.closest("[data-konoha-missions]")) {
+            missionView = "clan";
+            sportPage = "missions";
+            sportRender();
+            document
+              .querySelector(".clan-campaign")
+              ?.scrollIntoView({ block: "start" });
+          }
+        });
+        const prior = sportRender;
+        sportRender = function (...args) {
+          const result = prior(...args);
+          render();
+          return result;
+        };
+        document.addEventListener("rpg-clan:changed", () => {
+          render();
+          window.rpgInbox?.scan();
+        });
+        render();
       })();
     </script></body
   ></html
