@@ -1381,6 +1381,7 @@
       .bad {
         color: #ff657a;
       }
+      .dungeon-boss-section { margin-top: 24px; }
       .dungeon-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1548,26 +1549,6 @@
       }
       #dashboard .hunter {
         min-height: 285px;
-      }
-      .home-actions {
-        display: flex;
-        gap: 12px;
-        margin: 20px 0 24px;
-      }
-      .home-actions button {
-        flex: 1;
-        min-height: 56px;
-        border-radius: 13px;
-        border: 1px solid #4974a1;
-        background: linear-gradient(135deg, #132849, #091321);
-        color: #e6f4ff;
-        font-weight: 800;
-        letter-spacing: 0.4px;
-        cursor: pointer;
-      }
-      .home-actions button:last-child {
-        border-color: #8061ba;
-        background: linear-gradient(135deg, #281a49, #100d20);
       }
       .module-card {
         transition:
@@ -6826,9 +6807,6 @@
                   id="dailyQuest"
                   style="margin-top: 16px"
                 ></div></div></div
-            ><div class="home-actions"
-              ><button data-nav="quests">⚔ Mes quêtes</button
-              ><button data-nav="dungeons">◈ Explorer les donjons</button></div
             ><div class="section"
               >
               <div class="modulegrid" id="modules"></div></div
@@ -6915,20 +6893,16 @@
                 combats de boss.</p
               ></div
             ><div id="dungeonRoot"></div
-            ><div class="rpg-panel"
-              ><button class="rpg-switch" data-nav="rpg"
-                >👹 Combattre les boss débloqués →</button
-              ></div
+            ><div id="dungeonBosses"></div
             ><div data-surprise-board></div></section
           ><section id="rpg" class="hidden"
             ><div class="page-heading"
               ><span class="eyebrow">LE CHRONIQUEUR DES QUATRE VOIES</span
               ><h2>🧙 MON AVENTURE</h2
               ><p
-                >Personnage, caractéristiques, inventaire, carte du monde et
-                succès.</p
+                >Personnage, caractéristiques, inventaire et succès.</p
               ></div
-            ><div id="rpgRoot"></div><div id="rpgBosses"></div></section
+            ><div id="rpgRoot"></div></section
           ><section id="analytics" class="hidden"
             ><div class="page-heading"
               ><span class="eyebrow">JOURNAL DU CHASSEUR</span
@@ -10582,7 +10556,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               "",
             )}</div>${window.rpgLifeSystem?.companionMarkup() || ""}</div>
 <div class="rpg-panel" data-inventory-panel><h3>🎒 Inventaire & équipement</h3><p class="rpg-note">Objets débloqués par les donjons déjà terminés. Un seul objet par emplacement. Les bonus influencent uniquement les combats, jamais les XP.</p><div class="rpg-grid">${items.map((i) => `<div class="rpg-card ${owned(i) ? "" : "locked"}"><strong>${i.icon} ${i.name}</strong><p>${i.slot} · +${i.power} ${i.bonus}</p><button data-rpg-equip="${i.id}" ${owned(i) ? "" : "disabled"}>${state.equipment[i.slot] === i.id ? "Retirer" : owned(i) ? "Équiper" : "Verrouillé"}</button></div>`).join("")}</div></div>
-<div class="rpg-panel"><h3>🗺️ Carte du monde</h3><div class="rpg-path">${regions.map((r, i) => `<span class="${l >= r[1] ? "active" : ""}">${r[2]} ${r[0]}<br><small>Niveau ${r[1]} ${l >= r[1] ? "✓" : "🔒"}</small></span>${i < regions.length - 1 ? "→" : ""}`).join("")}</div><p class="rpg-note">Les régions se débloquent automatiquement avec le niveau global.</p></div>
 <div class="rpg-panel"><h3>🏅 Succès</h3><div class="rpg-grid">${achievements()
             .map(
               ([name, desc, ok]) =>
@@ -10729,12 +10702,12 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           if (actions) actions.insertAdjacentHTML("beforeend", '<button type="button" data-boss-game-close>Fermer l’épreuve</button>');
         }
         function renderBosses() {
-          const root = document.getElementById("rpgBosses");
+          const root = document.getElementById("dungeonBosses");
           if (!root) return;
           const st = scores(),
             combat = combatProfile();
           root.innerHTML =
-            '<div class="rpg-panel"><h3>👹 Boss des donjons</h3><p class="rpg-note">Un combat se débloque après validation du donjon correspondant. Chaque attaque exige de remporter un duel d’échecs. Les victoires sont enregistrées dans ta progression.</p><p class="rpg-note">Boucle de progression : donjon → équipement → dégâts renforcés → victoire sur le boss → compagnon. Force × 0,8 + Sagesse × 0,5 + (Vitalité − 1) × 0,5 + (Énergie − 1) × 0,5, puis +5 et arrondi. Les XP restent inchangés.</p><div class="rpg-grid">' +
+            '<div class="rpg-panel dungeon-boss-section"><h3>👹 Boss des donjons</h3><p class="rpg-note">Un combat se débloque après validation du donjon correspondant. Chaque attaque exige de remporter un duel d’échecs. Les victoires sont enregistrées dans ta progression.</p><p class="rpg-note">Boucle de progression : donjon → équipement → dégâts renforcés → victoire sur le boss → compagnon. Force × 0,8 + Sagesse × 0,5 + (Vitalité − 1) × 0,5 + (Énergie − 1) × 0,5, puis +5 et arrondi. Les XP restent inchangés.</p><div class="rpg-grid">' +
             bosses
               .map((b) => {
                 let unlocked = false;
