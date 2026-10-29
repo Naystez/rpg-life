@@ -6615,8 +6615,42 @@
           box-shadow: 0 8px 30px #60d59526;
         }
       }
-    </style></head
-  ><body
+    
+      .boss-game-overlay{position:fixed;inset:0;z-index:1000;background:#01040bdc;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)}
+      .boss-game-modal{width:min(100%,680px);max-height:92vh;overflow:auto;border:1px solid #8c6bd2;border-radius:18px;background:radial-gradient(circle at 50% 0,#25194b,#07101f 68%);box-shadow:0 0 0 1px #a886ff22,0 25px 100px #000b;padding:22px}
+      .boss-game-modal h2{margin:0 0 8px;color:#e6d5ff;font:700 26px Georgia,serif}.boss-game-modal p{color:#b7c7df;line-height:1.55}.boss-game-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.boss-game-actions button,.boss-game-close{border:1px solid #8c6bd2;background:#241843;color:#f1e8ff;border-radius:9px;padding:11px 14px;font-weight:700}.boss-game-actions button:hover{background:#3d2868}.boss-chess-board{display:grid;grid-template-columns:repeat(8,minmax(24px,1fr));width:min(100%,360px);aspect-ratio:1;margin:16px auto;border:3px solid #bda4e8;border-radius:5px;overflow:hidden}.boss-chess-square{display:flex;align-items:center;justify-content:center;aspect-ratio:1;font-size:clamp(17px,4vw,31px);color:#121827}.boss-chess-square.light{background:#e5d8bf}.boss-chess-square.dark{background:#6c7893}.boss-game-note{font-size:12px;color:#9fb4d5!important}.boss-card-choice{min-width:90px;min-height:110px;background:linear-gradient(145deg,#fff8e9,#c7d6ee)!important;color:#18233b!important;border:2px solid #e2c18a!important;font-size:23px}.boss-game-status{border-radius:10px;padding:12px;background:#091b2d;border:1px solid #345777;margin-top:14px;color:#d7edff!important}.boss-game-status.win{border-color:#3dbd91;color:#8dffca!important}.boss-game-status.lose{border-color:#e77a8a;color:#ffb7c0!important}
+      @media(max-width:520px){.boss-game-modal{padding:16px}.boss-game-modal h2{font-size:22px}.boss-game-actions button{flex:1}}
+
+</style></head
+  ><style id="rpg-life-weekly-customization-style">
+.quest.quest-completed,
+.quest.weekly-quest-complete {
+  position:relative; border:1px solid rgba(76,230,160,.52)!important;
+  border-left:4px solid #4ce6a0!important; border-radius:10px;
+  margin:7px 0; padding:11px 12px!important;
+  background:linear-gradient(100deg,rgba(28,112,78,.28),rgba(10,28,39,.88))!important;
+  box-shadow:inset 0 0 22px rgba(76,230,160,.06);
+}
+.quest.quest-completed .questname,.quest.weekly-quest-complete .questname {color:#caffdf!important;}
+.quest.quest-completed .questmeta,.quest.weekly-quest-complete .questmeta {color:#77e9b0!important;font-weight:800;}
+.quest.quest-completed .action:not(.done),.quest.weekly-quest-complete .action:not(.done) {background:#164d3a!important;border-color:#4ce6a0!important;color:#d9ffeb!important;font-weight:800;}
+.weekly-toolbar {display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 16px;padding:14px 16px;border:1px solid #2b4665;border-radius:12px;background:linear-gradient(130deg,#101f34,#091321);}
+.weekly-toolbar strong {color:#f5d79c;font-size:16px}.weekly-toolbar p{margin:5px 0 0;color:#a9bdd3;font-size:13px}
+.weekly-quest-zone {margin-top:12px}.weekly-footnote{color:#9db2cb;font-size:12px;line-height:1.6;margin:12px 2px}
+.weekly-editor {margin:12px 0 18px;padding:16px;border:1px solid #405b7a;border-radius:13px;background:linear-gradient(145deg,#101d31,#080f1d);}
+.weekly-editor-heading,.weekly-edit-module-head,.weekly-editor-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.weekly-editor-heading h3{margin:0 0 5px;color:#f5d79c}.weekly-editor-heading p,.weekly-editor-status{margin:5px 0 12px;color:#a9bdd3;font-size:12px;line-height:1.5}
+.weekly-edit-module{--weekly-accent:#78bafa;margin:12px 0;padding:12px;border:1px solid color-mix(in srgb,var(--weekly-accent),#17263a 60%);border-left:3px solid var(--weekly-accent);border-radius:10px;background:#0a1526}
+.weekly-edit-module.accent-sante{--weekly-accent:#f28b94}.weekly-edit-module.accent-nutrition{--weekly-accent:#76d6a0}.weekly-edit-module.accent-sport{--weekly-accent:#78bafa}.weekly-edit-module.accent-discipline{--weekly-accent:#c49bff}
+.weekly-edit-module-head h4{margin:0;color:var(--weekly-accent)}.weekly-edit-module-head span,.weekly-limit-note{color:#a9bdd3;font-size:12px}
+.weekly-edit-row{display:flex;align-items:flex-end;gap:10px;margin:10px 0}.weekly-edit-row label{display:grid;gap:5px;flex:1;min-width:0;color:#b8cce2;font-size:12px;font-weight:700}.weekly-edit-row input{box-sizing:border-box;width:100%;min-width:0;padding:10px 11px;border:1px solid #354d6c;border-radius:8px;background:#07111f;color:#f4f7fc;font:inherit;font-size:14px}.weekly-edit-row input:focus{outline:2px solid #78bafa;outline-offset:1px}
+.weekly-editor-actions{justify-content:flex-start;margin-top:14px}.weekly-editor-actions .primary{background:#15523c!important;border-color:#4ce6a0!important;color:#e4fff0!important}
+.weekly-quest-just-completed{animation:weeklyQuestWin .9s ease-out both!important}
+@keyframes weeklyQuestWin{0%{transform:scale(1);box-shadow:0 0 0 rgba(76,230,160,0)}35%{transform:scale(1.018);box-shadow:0 0 28px rgba(76,230,160,.4)}100%{transform:scale(1);box-shadow:inset 0 0 22px rgba(76,230,160,.06)}}
+.weekly-floatxp{font-size:27px!important;color:#6affb6!important;text-shadow:0 0 24px #31ffa6!important}
+@media(max-width:600px){.weekly-toolbar{align-items:flex-start}.weekly-edit-row{align-items:stretch;flex-wrap:wrap}.weekly-edit-row label{flex-basis:100%}.weekly-editor{padding:11px}.weekly-editor-actions button{width:100%}}
+@media(prefers-reduced-motion:reduce){.weekly-quest-just-completed{animation:none!important}}
+</style><body
     ><div class="app"
       ><aside class="sidebar"
         ><div class="brand"
@@ -6796,8 +6830,8 @@
               ><button data-nav="quests">⚔ Mes quêtes</button
               ><button data-nav="dungeons">◈ Explorer les donjons</button></div
             ><div class="section"
-              ><h2>✦ LES QUATRE VOIES</h2
-              ><div class="modulegrid" id="modules"></div></div
+              >
+              <div class="modulegrid" id="modules"></div></div
             ><div class="dashboard-bottom" aria-hidden="true"
               ><div class="panel"
                 ><h2>⚔ QUÊTES DU JOUR</h2
@@ -6820,7 +6854,7 @@
                   ></div></div></div></div></section
           ><section id="quests" class="hidden"
             ><div class="row"
-              ><h2>⚔ QUÊTES QUOTIDIENNES</h2
+              ><h2>⚔ QUÊTES</h2
               ><span class="date" id="todayCount"></span></div
             ><div class="quest-calendar panel" id="questCalendar"
               ><div
@@ -7646,7 +7680,7 @@
           description:
             "Atteins le niveau global 3 pour révéler ta première mission secrète.",
           mission:
-            "Termine une quête Santé et une quête Discipline aujourd’hui.",
+            "Termine une quête Bien-être et une quête Discipline aujourd’hui.",
           reward: "Sceau de l’Éveil",
         },
         {
@@ -7683,7 +7717,7 @@
           need: 5,
           kind: "module",
           module: "Santé",
-          description: "Débloquée au niveau 5 de Santé.",
+          description: "Débloquée au niveau 5 de Bien-être.",
           mission:
             "Valide Objectif Sommeil 8h et Sommeil Réparateur aujourd’hui.",
           reward: "Sigil de Vitalité",
@@ -7731,7 +7765,7 @@
           : level(xpOf(q.module), "module")[0] >= q.need;
       }
       function surpriseAchieved(q) {
-        const es = entries.filter((e) => e.date === today() && e.xp >= 0);
+        const es = entries.filter((e) => e.date === today() && !e.weeklyBonus && e.xp >= 0);
         const has = (module, fragment) =>
           es.some(
             (e) =>
@@ -7904,7 +7938,7 @@
             year: "numeric",
           });
         const t = today(),
-          te = entries.filter((e) => e.date === t),
+          te = entries.filter((e) => e.date === t && !e.weeklyBonus),
           dp = total(te.filter((e) => e.xp > 0)),
           net = total(te),
           g = xpOf(),
@@ -7985,7 +8019,7 @@
               '"><div class="module-art"><span class="module-icon">' +
               ic[m] +
               '</span></div><div class="module-body"><div class="module-name">' +
-              esc(m.toUpperCase()) +
+              esc((m === "Santé" ? "Bien-être" : m).toUpperCase()) +
               '</div><div class="module-title">' +
               esc(title(m, p.l[0])) +
               '</div><div class="module-level">Niveau ' +
@@ -8003,7 +8037,7 @@
           })
           .join("");
         const questDayEntries = entries.filter(
-          (e) => e.date === activeQuestDate(),
+          (e) => e.date === activeQuestDate() && !e.weeklyBonus,
         );
         const qhtml = mods
           .map((m) => {
@@ -8021,7 +8055,7 @@
               '"><h3>' +
               ic[m] +
               " " +
-              esc(m.toUpperCase()) +
+              esc((m === "Santé" ? "Bien-être" : m).toUpperCase()) +
               " · " +
               fmt(earned) +
               "/250 XP</h3>" +
@@ -8039,7 +8073,7 @@
                           ? "Jeton social"
                           : "Quête de la voie";
                   return (
-                    '<div class="quest"><div class="questinfo"><div class="questname">' +
+                    '<div class="quest ' + (count >= max ? "quest-completed" : "") + '"><div class="questinfo"><div class="questname">' +
                     esc(q.name) +
                     '</div><div class="questmeta">' +
                     type +
@@ -8047,6 +8081,7 @@
                     count +
                     "/" +
                     max +
+                    (count >= max ? " · ✓ VALIDÉE" : "") +
                     '</div></div><span class="xp ' +
                     (q.xp < 0 ? "negative" : "") +
                     '">' +
@@ -8055,11 +8090,11 @@
                     ' XP</span><button class="action" data-id="' +
                     q.id +
                     '" ' +
-                    (disabled ? "disabled" : "") +
+                    (disabled || count >= max ? "disabled" : "") +
                     ">" +
-                    (count >= max ? "✓ Fait" : "Valider") +
+                    (count >= max ? "✓ Validée" : "Valider") +
                     "</button>" +
-                    (count > 0 && count < max
+                    (count > 0
                       ? '<button class="action done" data-undo-id="' +
                         q.id +
                         '" title="Retirer une validation">↶</button>'
@@ -8263,7 +8298,7 @@
           }
           const earned = total(
             entries.filter(
-              (x) => x.date === t && x.module === q.module && x.xp > 0,
+              (x) => x.date === t && !x.weeklyBonus && x.module === q.module && x.xp > 0,
             ),
           );
           if (q.xp > 0 && earned + q.xp > 250) return;
@@ -8492,7 +8527,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         const days = [];
         for (let i = q.days - 1; i >= 0; i--) days.push(dateBack(i));
         const passed = days.map((d) =>
-          q.rule(entries.filter((e) => e.date === d)),
+          q.rule(entries.filter((e) => e.date === d && !e.weeklyBonus)),
         );
         if (q.kind === "cumulative")
           return {
@@ -8567,7 +8602,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         );
         const rows = dates.map((d) => ({
           date: d,
-          es: entries.filter((e) => e.date === d),
+          es: entries.filter((e) => e.date === d && !e.weeklyBonus),
         }));
         const positive = rows.reduce(
             (a, r) => a + total(r.es.filter((e) => e.xp > 0)),
@@ -8684,7 +8719,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         for (let d = 1; d <= last; d++) {
           const date = monthISO(y, m, d),
             future = date > today(),
-            day = entries.filter((e) => e.date === date),
+            day = entries.filter((e) => e.date === date && !e.weeklyBonus),
             xp = total(day),
             cls = day.length
               ? xp < 0
@@ -10534,7 +10569,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
               stage: 1,
               rank: "E",
             },
-            daily = total(entries.filter((e) => e.date === today())),
+            daily = total(entries.filter((e) => e.date === today() && !e.weeklyBonus)),
             companion = window.rpgLifeSystem?.activeCompanion();
           root.innerHTML = `<div class="rpg-panel" data-hunter-profile><h3>🧙 Profil du chasseur</h3><div class="system-stage"><div class="system-avatar shadow-profile-avatar">${shadowHunterAvatar(l)}</div><div><div class="profile-name-display" id="profileNameDisplay" ${profileEditing ? "hidden" : ""}><h4>${safe(state.name)}</h4><button type="button" class="profile-name-edit" data-profile-edit aria-label="Modifier mon pseudonyme" title="Modifier mon pseudonyme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 15v5Z"/></svg></button></div><form id="profileNameForm" ${profileEditing ? "" : "hidden"}><label for="profileNicknameInput">Ton pseudonyme</label><input id="profileNicknameInput" maxlength="32" required autocomplete="nickname" value="${safe(profileDraft ?? state.name)}"><div class="profile-name-actions"><button type="submit">Enregistrer</button><button type="button" data-profile-cancel>Annuler</button></div><p id="profileNameStatus" role="status"></p></form><p><span class="system-rank">RANG ${safe(visual.rank)}</span> · Niveau ${l}</p><p class="system-muted">${safe(current[0])}</p></div></div><div class="system-grid"><div class="system-tile">Mission du jour<b>${daily} / 1 000 XP</b><div class="system-progress"><div style="width:${Math.min(100, Math.max(0, daily / 10))}%"></div></div><small>${daily >= 1000 ? "Mission parfaite" : daily >= 500 ? "Objectif quotidien atteint" : "Objectif conseillé : 500 XP"}</small></div><div class="system-tile">Compagnon actif<b>${safe(companion?.name || "Aucun")}</b><small>${companion ? "Bonus actif en combat : +2 " + safe(companion.bonus) : "Débloque un compagnon en vainquant un boss."}</small></div></div><div class="rpg-grid">${Object.entries(
             st,
@@ -10562,13 +10597,144 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
           renderNarrative();
           document.dispatchEvent(new Event("rpg-life:panels"));
         }
+        let activeBossChallenge = null;
+        function closeBossChallenge() {
+          document.getElementById("bossGameOverlay")?.remove();
+          activeBossChallenge = null;
+        }
+        function showBossChallenge(bossId) {
+          const b = bosses.find((x) => x.id === bossId);
+          if (!b) return;
+          activeBossChallenge = bossId;
+          const old = document.getElementById("bossGameOverlay");
+          if (old) old.remove();
+          const overlay = document.createElement("div");
+          overlay.id = "bossGameOverlay";
+          overlay.className = "boss-game-overlay";
+          overlay.innerHTML = `<div class="boss-game-modal" role="dialog" aria-modal="true" aria-labelledby="bossGameTitle"><div class="eyebrow">ÉPREUVE DE BOSS</div><h2 id="bossGameTitle">${safe(b.name)} · Duel d’échecs</h2><p>Réussis un mini-jeu pour porter une attaque. Une victoire inflige les dégâts affichés dans le combat ; une défaite ne retire aucun point et tu peux réessayer.</p><div class="boss-game-actions"><button type="button" data-boss-game="chess">♟ Duel d’échecs</button><button type="button" class="boss-game-close" data-boss-game-close>Retour au boss</button></div><div id="bossGameBody"></div></div>`;
+          overlay.addEventListener("click", (e) => { if (e.target === overlay) closeBossChallenge(); });
+          document.body.appendChild(overlay);
+        }
+        let bossChessLoading = false;
+        function loadBossChessLibrary() {
+          if (window.Chess) return Promise.resolve(true);
+          if (window.__rpgChessLoadPromise) return window.__rpgChessLoadPromise;
+          window.__rpgChessLoadPromise = new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js";
+            script.onload = () => resolve(!!window.Chess);
+            script.onerror = () => resolve(false);
+            document.head.appendChild(script);
+          });
+          return window.__rpgChessLoadPromise;
+        }
+        function showChessChallenge() {
+          const body = document.getElementById("bossGameBody");
+          if (!body) return;
+          body.innerHTML = `<p><strong>Échecs en duel contre le boss.</strong> Joue une partie complète : déplacements légaux, prises, roque, promotion et échec et mat. Tu joues les Blancs ; le boss joue les Noirs.</p><p id="bossChessLoading" class="boss-game-status" aria-live="polite">Chargement du moteur d’échecs…</p><div id="bossChessPlay"></div>`;
+          loadBossChessLibrary().then((ok) => {
+            const host = document.getElementById("bossChessPlay");
+            const status = document.getElementById("bossChessLoading");
+            if (!host || !status) return;
+            if (!ok) {
+              status.className = "boss-game-status lose";
+              status.textContent = "Le moteur d’échecs n’a pas pu être chargé. Vérifie la connexion internet puis relance l’épreuve.";
+              return;
+            }
+            window.__rpgBossChess = { game: new window.Chess(), selected: null, over: false };
+            status.textContent = "À toi de jouer. Sélectionne une pièce blanche, puis sa case de destination.";
+            status.className = "boss-game-status";
+            renderBossChessBoard();
+          });
+        }
+        function renderBossChessBoard() {
+          const host = document.getElementById("bossChessPlay"), state = window.__rpgBossChess;
+          if (!host || !state || !window.Chess) return;
+          const board = state.game.board(), files = "abcdefgh";
+          let html = '<div class="boss-chess-wrap"><div class="boss-chess-board boss-chess-real" role="group" aria-label="Échiquier de duel">';
+          for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
+            const square = files[c] + (8-r), piece = board[r][c];
+            const glyphs = {wk:"♔",wq:"♕",wr:"♖",wb:"♗",wn:"♘",wp:"♙",bk:"♚",bq:"♛",br:"♜",bb:"♝",bn:"♞",bp:"♟"};
+            const selected = state.selected === square;
+            const legal = state.selected && state.game.moves({square:state.selected,verbose:true}).some(m=>m.to===square);
+            html += `<button type="button" class="boss-chess-square ${(r+c)%2===0?'light':'dark'} ${selected?'selected':''} ${legal?'legal':''}" data-chess-square="${square}" aria-label="${square}${piece?' '+(piece.color==='w'?'pièce blanche':'pièce noire'):''}">${piece?(glyphs[piece.color+piece.type]||''):''}<small>${c===0?8-r:''}${r===7?files[c]:''}</small></button>`;
+          }
+          html += '</div><div class="boss-chess-side"><p class="boss-game-note">Blancs : toi · Noirs : boss</p><button type="button" data-chess-new>Nouvelle partie</button><button type="button" data-boss-game-close>Terminer l’épreuve</button></div></div>';
+          host.innerHTML = html;
+        }
+        function bossChessMove(square) {
+          const state = window.__rpgBossChess, status = document.getElementById("bossChessLoading");
+          if (!state || state.over || !status) return;
+          const piece = state.game.get(square);
+          if (!state.selected) {
+            if (piece && piece.color === 'w') { state.selected = square; renderBossChessBoard(); status.textContent = 'Pièce sélectionnée : choisis une case verte ou une pièce adverse.'; }
+            return;
+          }
+          if (piece && piece.color === 'w') { state.selected = square; renderBossChessBoard(); return; }
+          let move = null;
+          try { move = state.game.move({from:state.selected,to:square,promotion:'q'}); } catch(e) {}
+          if (!move) { status.textContent = 'Coup illégal. Sélectionne une destination légale.'; state.selected = null; renderBossChessBoard(); return; }
+          state.selected = null;
+          if (state.game.game_over()) { finishBossChessGame(); return; }
+          renderBossChessBoard();
+          status.textContent = 'Le boss réfléchit…';
+          setTimeout(() => {
+            if (!window.__rpgBossChess || state.over || !document.getElementById('bossChessPlay')) return;
+            const moves = state.game.moves({verbose:true});
+            if (!moves.length) { finishBossChessGame(); return; }
+            // Legal one-ply bot: prioritize checkmate, captures and checks; otherwise choose a legal move.
+            const value = {p:1,n:3,b:3,r:5,q:9,k:100};
+            moves.sort((a,b)=>((b.captured?value[b.captured]:0)+(b.san.includes('#')?1000:0)+(b.san.includes('+')?0.4:0))-((a.captured?value[a.captured]:0)+(a.san.includes('#')?1000:0)+(a.san.includes('+')?0.4:0)));
+            const top = moves.slice(0,Math.min(5,moves.length));
+            state.game.move(top[Math.floor(Math.random()*top.length)].san);
+            if (state.game.game_over()) { finishBossChessGame(); return; }
+            renderBossChessBoard();
+            status.textContent = 'À toi de jouer avec les Blancs.';
+          }, 450);
+        }
+        function finishBossChessGame() {
+          const state = window.__rpgBossChess, status = document.getElementById("bossChessLoading");
+          if (!state) return;
+          state.over = true;
+          if (state.game.in_checkmate && state.game.in_checkmate() && state.game.turn()==='b') {
+            if (status) { status.className='boss-game-status win'; status.textContent='Échec et mat ! Tu remportes le duel et infliges une attaque au boss.'; }
+            bossChallengeVictory();
+          } else if (status) {
+            status.className='boss-game-status lose';
+            status.textContent = (state.game.in_checkmate && state.game.in_checkmate()) ? 'Le boss t’a mis échec et mat. Aucun dégât ni pénalité : relance une partie.' : 'Partie nulle. Aucun dégât ni pénalité : tu peux rejouer.';
+          }
+          renderBossChessBoard();
+        }
+        function bossChallengeVictory() {
+          const bossId = activeBossChallenge;
+          const b = bosses.find((x) => x.id === bossId);
+          if (!b) return;
+          let unlocked = false;
+          try { unlocked = !!dungeonClaims[b.id]; } catch (e) {}
+          if (!unlocked) { closeBossChallenge(); return; }
+          const v = state.bosses[b.id] || { hp: b.hp, turn: 0, won: false };
+          if (v.won) { closeBossChallenge(); return; }
+          const { damage } = combatProfile();
+          v.hp = Math.max(0, v.hp - damage);
+          v.turn++;
+          v.won = v.hp === 0;
+          v.log = v.won ? "🏆 Épreuve remportée ! Boss vaincu." : `Épreuve réussie · Coup ${v.turn} : ${damage} dégâts infligés.`;
+          state.bosses[b.id] = v;
+          persist();
+          const status = document.getElementById("bossGameStatus");
+          if (status) { status.className = "boss-game-status win"; status.textContent = v.won ? "🏆 Victoire ! Le boss est vaincu." : `Réussite ! Tu infliges ${damage} dégâts. Tu peux continuer le combat.`; }
+          renderBosses();
+          document.dispatchEvent(new Event("rpg-life:changed"));
+          const actions = document.querySelector("#bossGameBody .boss-game-actions");
+          if (actions) actions.insertAdjacentHTML("beforeend", '<button type="button" data-boss-game-close>Fermer l’épreuve</button>');
+        }
         function renderBosses() {
           const root = document.getElementById("rpgBosses");
           if (!root) return;
           const st = scores(),
             combat = combatProfile();
           root.innerHTML =
-            '<div class="rpg-panel"><h3>👹 Boss des donjons</h3><p class="rpg-note">Un combat se débloque après validation du donjon correspondant. Chaque attaque est manuelle, sans hasard ni dépense de points. Les victoires sont enregistrées localement.</p><p class="rpg-note">Boucle de progression : donjon → équipement → dégâts renforcés → victoire sur le boss → compagnon. Force × 0,8 + Sagesse × 0,5 + (Vitalité − 1) × 0,5 + (Énergie − 1) × 0,5, puis +5 et arrondi. Les XP restent inchangés.</p><div class="rpg-grid">' +
+            '<div class="rpg-panel"><h3>👹 Boss des donjons</h3><p class="rpg-note">Un combat se débloque après validation du donjon correspondant. Chaque attaque exige de remporter un duel d’échecs. Les victoires sont enregistrées dans ta progression.</p><p class="rpg-note">Boucle de progression : donjon → équipement → dégâts renforcés → victoire sur le boss → compagnon. Force × 0,8 + Sagesse × 0,5 + (Vitalité − 1) × 0,5 + (Énergie − 1) × 0,5, puis +5 et arrondi. Les XP restent inchangés.</p><div class="rpg-grid">' +
             bosses
               .map((b) => {
                 let unlocked = false;
@@ -10580,7 +10746,7 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                   turn: 0,
                   won: false,
                 };
-                return `<div class="rpg-card ${unlocked ? "" : "locked"}"><strong>👹 ${b.name}</strong><p>${unlocked ? (v.won ? "🏆 Vaincu" : "Combat disponible") : "🔒 Terminer le donjon pour combattre"}</p><div class="rpg-boss-health"><div style="width:${Math.max(0, Math.min(100, (v.hp / b.hp) * 100))}%"></div></div><p>${Math.max(0, v.hp)} / ${b.hp} PV</p><p class="rpg-note">⚔️ ${combat.damage} dégâts par attaque${combat.companion ? " · Compagnon : " + safe(combat.companion.name) : ""}</p><button data-rpg-attack="${b.id}" ${!unlocked || v.won ? "disabled" : ""}>⚔️ Attaquer</button><div class="rpg-boss-log">${safe(v.log || "")}</div></div>`;
+                return `<div class="rpg-card ${unlocked ? "" : "locked"}"><strong>👹 ${b.name}</strong><p>${unlocked ? (v.won ? "🏆 Vaincu" : "Combat disponible") : "🔒 Terminer le donjon pour combattre"}</p><div class="rpg-boss-health"><div style="width:${Math.max(0, Math.min(100, (v.hp / b.hp) * 100))}%"></div></div><p>${Math.max(0, v.hp)} / ${b.hp} PV</p><p class="rpg-note">⚔️ ${combat.damage} dégâts par attaque${combat.companion ? " · Compagnon : " + safe(combat.companion.name) : ""}</p><button data-rpg-attack="${b.id}" ${!unlocked || v.won ? "disabled" : ""}>🎮 Relever l’épreuve</button><div class="rpg-boss-log">${safe(v.log || "")}</div></div>`;
               })
               .join("") +
             "</div></div>";
@@ -10626,28 +10792,26 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             refresh();
             return;
           }
+          const gameClose = e.target.closest("[data-boss-game-close]");
+          if (gameClose) { closeBossChallenge(); return; }
+          const gameType = e.target.closest("[data-boss-game]");
+          if (gameType) {
+            if (gameType.dataset.bossGame === "chess") showChessChallenge();
+            return;
+          }
+          const chessSquare = e.target.closest("[data-chess-square]");
+          if (chessSquare) { bossChessMove(chessSquare.dataset.chessSquare); return; }
+          if (e.target.closest('[data-chess-new]')) { showChessChallenge(); return; }
           const attack = e.target.closest("[data-rpg-attack]");
           if (attack) {
             const b = bosses.find((x) => x.id === attack.dataset.rpgAttack);
             if (!b) return;
             let unlocked = false;
-            try {
-              unlocked = !!dungeonClaims[b.id];
-            } catch (err) {}
+            try { unlocked = !!dungeonClaims[b.id]; } catch (err) {}
             if (!unlocked) return;
-            let v = state.bosses[b.id] || { hp: b.hp, turn: 0, won: false };
+            const v = state.bosses[b.id] || { hp: b.hp, turn: 0, won: false };
             if (v.won) return;
-            const { damage } = combatProfile();
-            v.hp = Math.max(0, v.hp - damage);
-            v.turn++;
-            v.won = v.hp === 0;
-            v.log = v.won
-              ? "🏆 Victoire ! Boss vaincu."
-              : `Coup ${v.turn} : ${damage} dégâts infligés.`;
-            state.bosses[b.id] = v;
-            persist();
-            renderBosses();
-            document.dispatchEvent(new Event("rpg-life:changed"));
+            showBossChallenge(b.id);
             return;
           }
           if (e.target.closest('[data-tab="quests"],[data-nav="quests"]'))
@@ -11327,57 +11491,6 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
         });
         document.addEventListener("rpg-life:changed", render);
         render();
-      })();
-    </script>
-    <script id="unified-ranks-v61">
-      (function () {
-        const thresholds = [0, 6, 16, 26, 41, 61];
-        const rank = (l) =>
-          ["E", "D", "C", "B", "A", "S"][
-            thresholds.reduce((acc, n, i) => (l >= n ? i : acc), 0)
-          ];
-        function update() {
-          const dashboard = document.getElementById("dashboard");
-          if (!dashboard) return;
-          let box = document.getElementById("moduleRanksV61");
-          if (!box) {
-            box = document.createElement("div");
-            box.id = "moduleRanksV61";
-            box.className = "module-ranks-v61";
-            const anchor = dashboard.querySelector("#modules");
-            if (anchor) anchor.parentElement.insertBefore(box, anchor);
-            else dashboard.appendChild(box);
-          }
-          const modules = [
-            ["❤️", "Santé"],
-            ["🥗", "Nutrition"],
-            ["💪", "Sport"],
-            ["🧠", "Discipline"],
-          ];
-          let html =
-            '<h3>⚔️ Rangs des quatre voies</h3><div class="module-ranks-v61-grid">';
-          for (const [icon, name] of modules) {
-            let l = 0;
-            try {
-              const xp = entries
-                .filter((e) => e.module === name)
-                .reduce((a, e) => a + (Number(e.xp) || 0), 0);
-              l = level(xp, "module")[0] || 0;
-            } catch (e) {}
-            html += `<div>${icon} ${name}<b>Rang ${rank(l)}</b><small>Niveau ${l}</small></div>`;
-          }
-          box.innerHTML = html + "</div>";
-        }
-        document.addEventListener("click", (e) => {
-          if (
-            e.target.closest(
-              '[data-tab="dashboard"],[data-nav="dashboard"],[data-quest],[data-claim-dungeon]',
-            )
-          )
-            setTimeout(update, 70);
-        });
-        document.addEventListener("rpg-life:changed", update);
-        update();
       })();
     </script>
     <div
@@ -12590,9 +12703,13 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
                           "Une ombre") + " rejoint ton armée."
                       : x.body,
                   ) +
-                  '</p><button type="button" data-inbox-open="' +
+                  '</p><div class="inbox-item-actions">' +
+                  (x.read
+                    ? '<button type="button" disabled aria-label="Message déjà lu">✓ Lu</button>'
+                    : '<button type="button" data-inbox-mark-read="' + safe(x.id) + '">Lu</button>') +
+                  '<button type="button" data-inbox-open="' +
                   safe(x.id) +
-                  '">Voir →</button></article>',
+                  '">Voir →</button></div></article>', 
               )
               .join("") ||
             "<p>Aucune nouveauté pour le moment. Tes prochains déblocages apparaîtront ici.</p>";
@@ -12652,6 +12769,19 @@ ${crown ? `<path d="M112 53L122 17 146 42 160 8 174 42 198 17 208 53" fill="${me
             });
             render();
             return;
+          }
+          const markRead = e.target.closest("[data-inbox-mark-read]");
+          if (markRead) {
+            const id = markRead.dataset.inboxMarkRead;
+            const item = state.items.find((x) => x.id === id);
+            if (item && belongs(item) && !item.read) {
+              const next = {
+                ...state,
+                items: state.items.map((x) => x.id === id ? { ...x, read: true } : x),
+              };
+              if (persist(next)) render();
+            }
+            return; // Keep the inbox open; only mark this item as read.
           }
           const action = e.target.closest("[data-inbox-open]");
           if (!action) return;
@@ -15452,7 +15582,7 @@ function currentStats(settings){const a=rpgTrainingActivity.counts(),l=sportLeve
 function settingsFromUI(){const pseudo=body.querySelector('[data-guild-pseudo]')?.value.trim();if(!pseudo)fail('Choisis un pseudonyme pour ta Guilde.');return {pseudo:pseudo.slice(0,32),monarch:body.querySelector('[data-guild-monarch]').checked,shinobi:body.querySelector('[data-guild-shinobi]').checked};}
 function selfForm(){const name=mine?.pseudo||rpgLifeAdventure.getState().name||'Aventurier';return '<label>Pseudonyme partagé<input data-guild-pseudo maxlength="32" value="'+esc(name)+'" autocomplete="nickname"></label><div class="guild-share"><label><input type="checkbox" data-guild-monarch '+(mine?.monarch===false?'':'checked')+'> Voie du Monarque : niveau et niveaux des quatre voies</label><label><input type="checkbox" data-guild-shinobi '+(mine?.shinobi===false?'':'checked')+'> Konoha : niveau, rang, clan et séances de la semaine / du mois</label></div>';}
 function dateText(value){try{return value?.toDate?value.toDate().toLocaleString('fr-FR'):'à l’instant';}catch{return 'récemment';}}
-function peerCard(id){const p=peers.get(id);if(!p)return '<article class="guild-friend"><h3>Profil indisponible</h3><p>Le partage est peut-être en pause.</p><button data-guild-remove="'+esc(id)+'">Retirer cet ami</button></article>';const activity=rpgTrainingActivity.counts(),clan=rpgClans.catalog().find(x=>x.id===p.clan);const cheer=cheers.find(x=>x.id===id);return '<article class="guild-friend"><h3>⚔️ '+esc(p.pseudo)+'</h3>'+(p.monarch?'<section><h4>Voie du Monarque · Niveau '+esc(p.mainLevel)+'</h4><p>'+['Santé','Nutrition','Sport','Discipline'].map((m,i)=>m+' '+esc(p.modules?.[i]??0)).join(' · ')+'</p></section>':'')+(p.shinobi?'<section><h4>🍃 '+esc(p.rank)+' · Niveau '+esc(p.ninjaLevel)+'</h4><p>Clan : '+esc(clan?.name||p.clan||'Pas encore choisi')+'</p><div class="guild-counts"><span><b>'+esc(p.weekStart===activity.weekStart?p.week:0)+'</b> séance(s) cette semaine</span><span><b>'+esc(p.monthStart===activity.monthStart?p.month:0)+'</b> ce mois-ci</span></div></section>':'')+(!p.monarch&&!p.shinobi?'<p>Ce joueur partage uniquement son pseudonyme.</p>':'')+'<small>Actualisé '+esc(dateText(p.updatedAt))+'</small>'+(cheer?'<p class="guild-cheer">🔥 '+esc(cheer.message)+'</p>':'')+'<div class="guild-actions"><select aria-label="Encouragement pour '+esc(p.pseudo)+'" data-guild-cheer-choice="'+esc(id)+'"><option>Bien joué !</option><option>Continue comme ça !</option><option>On ne lâche rien !</option></select><button data-guild-cheer="'+esc(id)+'">🔥 Encourager</button><button data-guild-remove="'+esc(id)+'">Retirer</button></div></article>';}
+function peerCard(id){const p=peers.get(id);if(!p)return '<article class="guild-friend"><h3>Profil indisponible</h3><p>Le partage est peut-être en pause.</p><button data-guild-remove="'+esc(id)+'">Retirer cet ami</button></article>';const activity=rpgTrainingActivity.counts(),clan=rpgClans.catalog().find(x=>x.id===p.clan);const cheer=cheers.find(x=>x.id===id);return '<article class="guild-friend"><h3>⚔️ '+esc(p.pseudo)+'</h3>'+(p.monarch?'<section><h4>Voie du Monarque · Niveau '+esc(p.mainLevel)+'</h4><p>'+['Santé','Nutrition','Sport','Discipline'].map((m,i)=>(m==='Santé'?'Bien-être':m)+' '+esc(p.modules?.[i]??0)).join(' · ')+'</p></section>':'')+(p.shinobi?'<section><h4>🍃 '+esc(p.rank)+' · Niveau '+esc(p.ninjaLevel)+'</h4><p>Clan : '+esc(clan?.name||p.clan||'Pas encore choisi')+'</p><div class="guild-counts"><span><b>'+esc(p.weekStart===activity.weekStart?p.week:0)+'</b> séance(s) cette semaine</span><span><b>'+esc(p.monthStart===activity.monthStart?p.month:0)+'</b> ce mois-ci</span></div></section>':'')+(!p.monarch&&!p.shinobi?'<p>Ce joueur partage uniquement son pseudonyme.</p>':'')+'<small>Actualisé '+esc(dateText(p.updatedAt))+'</small>'+(cheer?'<p class="guild-cheer">🔥 '+esc(cheer.message)+'</p>':'')+'<div class="guild-actions"><select aria-label="Encouragement pour '+esc(p.pseudo)+'" data-guild-cheer-choice="'+esc(id)+'"><option>Bien joué !</option><option>Continue comme ça !</option><option>On ne lâche rien !</option></select><button data-guild-cheer="'+esc(id)+'">🔥 Encourager</button><button data-guild-remove="'+esc(id)+'">Retirer</button></div></article>';}
 function render(){badges();if(modal.hidden)return;const focused=document.activeElement,editing=body.contains(focused)&&focused.matches('input,select'),drafts=editing?Array.from(body.querySelectorAll('input,select')).map(e=>({key:e.id||e.getAttribute('data-guild-cheer-choice')||e.hasAttribute('data-guild-pseudo')&&'pseudo'||e.hasAttribute('data-guild-monarch')&&'monarch'||e.hasAttribute('data-guild-shinobi')&&'shinobi',value:e.value,checked:e.checked,active:e===focused})):null;const status='<button data-guild-retry>↻ Actualiser</button><p class="guild-status" role="status" aria-live="polite">'+esc(notice)+'</p>';let html=status;
 if(!service)html+='<p>Connexion à Firebase…</p><button data-guild-retry>Réessayer</button>';
 else if(!uid)html+='<p>Connecte-toi au même compte que ta sauvegarde pour retrouver tes amis.</p><button data-guild-login>☁ Me connecter</button>';
@@ -15488,7 +15618,221 @@ function fit(){if(!window.visualViewport)return;modal.style.top=visualViewport.o
 window.rpgGuild={open,status:()=>({connected:!!uid,enabled:!!mine?.enabled,friends:friendIds().length,pending:incoming.filter(x=>x.status==='pending').length}),rules:RULES};attachButtons();connect();
 })();
 </script><style id="guild-tabs-style">.topbar .mobile-universe-trigger{display:flex!important;flex:0 1 220px;margin:0!important}@media(max-width:850px){.topbar .mobile-universe-trigger{flex:1 1 0!important}}.topbar>.guild-entry{order:1!important;margin:0!important;min-height:48px;position:relative;white-space:nowrap;font-size:13px;flex:0 0 auto;padding:10px 14px;display:flex;align-items:center;justify-content:center;gap:6px}.guild-entry-badge{position:absolute;top:-5px;right:-4px;min-width:18px;border-radius:12px;background:#ce7041;color:#fff;font-size:11px;padding:2px 4px}.guild-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:22px 0}.guild-tabs button{font-weight:700;background:transparent}.guild-tabs button[aria-selected=true]{background:#234967;border-color:#8ad1ff;color:#fff;box-shadow:inset 0 -3px #8ad1ff}body.shinobi-mode .guild-tabs button[aria-selected=true]{background:#1a503a;border-color:#7ce6b0;box-shadow:inset 0 -3px #7ce6b0}#guildModal [hidden]{display:none!important}#guildModal{padding:0;background:#061322}.guild-dialog{width:100%;max-width:1200px;height:100%;max-height:100%;border-radius:0;border-width:0 1px}.guild-settings{padding:0 2px}.guild-settings h3{margin-top:24px}.guild-settings>.guild-actions{margin-top:20px}.guild-setup{border-top:1px solid #31516b;margin-top:28px;padding-top:10px}@media(max-width:850px){.topbar>.guild-entry{flex:0 0 88px!important;width:88px;min-width:0;min-height:48px;padding:7px 5px;font-size:11px;gap:4px}.topbar>.guild-entry>span:first-child{font-size:15px}.topbar .mobile-universe-trigger{margin-right:0!important}.topbar .rpg-inbox-button{flex:0 0 40px!important;min-width:40px!important;width:40px!important}.guild-dialog{max-height:100%;padding:18px 14px}.guild-tabs{gap:8px;margin-top:18px}.guild-dialog header h2{font-size:22px}.guild-dialog header button{font-size:13px}}@media(max-width:374px){.topbar>.guild-entry{flex-basis:80px!important;width:80px;font-size:10px}.topbar .mobile-universe-trigger{padding:6px!important}.topbar .mobile-universe-trigger .universe-arrow{display:none}.topbar .mobile-universe-trigger .universe-copy strong{font-size:9px!important}.topbar .mobile-universe-trigger .universe-copy small{font-size:9px!important}}
-</style></body
+</style><script id="visible-wellbeing-labels">
+(function(){
+  function replaceText(root){
+    if(!root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
+      acceptNode(node){
+        const parent=node.parentElement;
+        if(!parent||parent.closest('script,style,textarea,input,[data-internal-label]'))return NodeFilter.FILTER_REJECT;
+        return /santé/i.test(node.nodeValue||'')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
+      }
+    });
+    const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+    for(const node of nodes){node.nodeValue=node.nodeValue.replace(/SANTÉ/g,'BIEN-ÊTRE').replace(/Santé/g,'Bien-être').replace(/santé/g,'bien-être');}
+    root.querySelectorAll?.('[aria-label],[title],[placeholder]').forEach(el=>{
+      for(const attr of ['aria-label','title','placeholder'])if(el.hasAttribute(attr))el.setAttribute(attr,el.getAttribute(attr).replace(/SANTÉ/g,'BIEN-ÊTRE').replace(/Santé/g,'Bien-être').replace(/santé/g,'bien-être'));
+    });
+  }
+  function start(){
+    replaceText(document.body);
+    const observer=new MutationObserver(records=>records.forEach(r=>{
+      if(r.type==='characterData')replaceText(r.target.parentElement);
+      else r.addedNodes.forEach(n=>{if(n.nodeType===Node.TEXT_NODE){const p=n.parentElement;if(p&&!p.closest('script,style,textarea,input,select,option'))replaceText(p);}else if(n.nodeType===Node.ELEMENT_NODE)replaceText(n);});
+    }));
+    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+})();
+</script>
+
+<style id="rpg-life-visual-fixes-v3">
+/* Distinct, legible mini-game boards and quest subnavigation */
+#quests .quest-subnav{display:flex;gap:10px;margin:4px 0 20px;flex-wrap:wrap;border-bottom:1px solid var(--border,#2a3448);padding-bottom:12px}
+#quests > [hidden],#weeklyQuestPanel[hidden]{display:none!important}
+#quests .quest-subnav button{min-height:44px;padding:11px 20px;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:rgba(255,255,255,.04);color:inherit;font-weight:800;cursor:pointer}
+#quests .quest-subnav button.active{background:linear-gradient(135deg,#7d4dff,#e05cbb);border-color:transparent;color:white;box-shadow:0 5px 18px #7d4dff33}
+#weeklyQuestPanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:24px}
+.weekly-module{border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:17px;background:rgba(255,255,255,.035);min-width:0}
+.weekly-module h3{margin:0 0 5px;font-size:18px}.weekly-module .weekly-cap{font-size:13px;opacity:.8;margin-bottom:12px}
+.weekly-module .weekly-track{height:8px;border-radius:20px;background:rgba(255,255,255,.1);overflow:hidden;margin:9px 0 14px}.weekly-module .weekly-track span{display:block;height:100%;background:linear-gradient(90deg,#9d74ff,#ff83c8);width:0;transition:width .25s}
+.weekly-task{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid rgba(255,255,255,.07);font-size:14px}.weekly-task input{margin-top:3px;accent-color:#b68aff;width:18px;height:18px;flex:0 0 auto}.weekly-task.done span{text-decoration:line-through;opacity:.6}
+.weekly-footnote{grid-column:1/-1;font-size:13px;opacity:.75;margin:0}
+
+.boss-chess-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.35fr);gap:14px;align-items:start;margin:14px 0}
+.boss-chess-real{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));aspect-ratio:1;width:min(100%,440px);border:2px solid #6d5a43;border-radius:8px;overflow:hidden}
+.boss-chess-square{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:0;border-radius:0;padding:0;font-size:clamp(22px,4.5vw,43px);line-height:1;cursor:pointer;min-width:0;min-height:0;color:#181818}
+.boss-chess-square.light{background:#f0d9b5}.boss-chess-square.dark{background:#9b7653}.boss-chess-square.selected{box-shadow:inset 0 0 0 4px #ffe56a}.boss-chess-square.legal:after{content:"";position:absolute;width:22%;height:22%;border-radius:50%;background:#2b8c57aa}.boss-chess-square small{position:absolute;bottom:1px;left:3px;font-size:9px;color:#222;opacity:.75}
+.boss-chess-side{display:flex;flex-direction:column;gap:8px}.boss-chess-side button{min-height:40px;padding:8px;border-radius:9px;cursor:pointer}
+.tarot-score{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}.tarot-score>div{padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;text-align:center}.tarot-score small,.tarot-score strong{display:block}.tarot-score strong{font-size:21px;margin-top:4px}
+.tarot-hand{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.tarot-card{display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:8px;min-width:82px;min-height:112px;max-width:120px;flex:1 1 82px;padding:10px 6px;border:2px solid #d6c6a0;border-radius:10px;background:linear-gradient(145deg,#fffdf5,#e8dcc0);color:#27221c;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #a9946d}.tarot-card.red{color:#b12635}.tarot-card small{font-size:11px;font-weight:600}.tarot-card:disabled{opacity:.5;cursor:not-allowed}.tarot-back{display:inline-flex;align-items:center;justify-content:center;width:27px;height:37px;border-radius:5px;border:1px solid #d6c6a0;background:repeating-linear-gradient(45deg,#34234c,#34234c 3px,#5c3b76 3px,#5c3b76 6px);color:white;font-size:20px}
+@media(max-width:620px){#weeklyQuestPanel{grid-template-columns:1fr}.weekly-footnote{grid-column:auto}.boss-chess-wrap{grid-template-columns:1fr}.boss-chess-side{flex-direction:row;flex-wrap:wrap}.boss-chess-side button{flex:1}.tarot-card{min-width:70px;min-height:100px}}
+
+#weeklyQuestPanel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-bottom:24px}
+#weeklyQuestPanel .quest-module{margin:0;min-width:0}
+#weeklyQuestPanel .weekly-footnote{grid-column:1/-1;font-size:12px;color:#8ca6c7;margin:0;padding:2px 4px}
+#weeklyQuestPanel .weekly-quest-complete .questname{text-decoration:line-through;opacity:.65}
+.inbox-item-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.inbox-item-actions button{min-width:72px}
+.inbox-item-actions button:disabled{opacity:.72;cursor:default;background:#15382e;border-color:#3d8067}
+.tarot-duel-table{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:12px;align-items:stretch;margin:12px 0}
+.tarot-boss-play,.tarot-rule-panel{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.035);border-radius:12px;padding:12px;min-width:0}
+.tarot-boss-play h3,.tarot-rule-panel h3,.tarot-hand-title{font-size:15px;margin:0 0 10px;color:#f3d59b}
+.tarot-boss-card{margin:8px auto;min-height:130px;max-width:150px;cursor:default}
+.tarot-card-symbol{font-size:25px;line-height:1.1}
+.tarot-card strong{font-size:13px;text-align:center}
+.tarot-rule-panel p{font-size:13px;line-height:1.45;margin:8px 0;color:#d4e0f1}
+.tarot-card.tarot-illegal{opacity:.35;filter:grayscale(.65);cursor:not-allowed;box-shadow:none}
+.tarot-card.tarot-legal{border-color:#4fb88a}
+.tarot-rules{margin-top:14px;padding:12px 15px;border-radius:12px;border:1px solid #314762;background:#071326;color:#bdcde1;font-size:12px;line-height:1.5}
+.tarot-rules strong{color:#f3d59b}
+.tarot-rules ol{padding-left:20px;margin:7px 0 0}
+.tarot-rules li{margin:4px 0}
+@media(max-width:620px){#weeklyQuestPanel{grid-template-columns:1fr}.weekly-footnote{grid-column:auto}.tarot-duel-table{grid-template-columns:1fr}.tarot-hand{gap:6px}.tarot-card{min-width:68px;flex-basis:70px;padding:8px 4px}.tarot-card strong{font-size:11px}.tarot-card-symbol{font-size:21px}}
+
+</style>
+<script id="rpg-life-quests-weekly-v5">
+(function(){
+  const root=document.getElementById('quests');
+  if(!root || root.dataset.weeklyV5) return;
+  root.dataset.weeklyV5='1';
+  const titleRow=root.querySelector(':scope > .row');
+  if(!titleRow) return;
+  const title=titleRow.querySelector('h2');
+  const originalTitle=title ? title.textContent : '⚔ QUÊTES QUOTIDIENNES';
+  const countLabel=root.querySelector('#todayCount');
+  const originalCountHidden=countLabel ? countLabel.hidden : false;
+  const originalChildren=[...root.children].filter(el=>el!==titleRow);
+  const originalHidden=new Map(originalChildren.map(el=>[el,el.hidden]));
+  const CONFIG_KEY='rpg-life-weekly-quests-v1';
+  const modules=[
+    {name:'Santé',label:'Bien-être',color:'#f28b94',slug:'sante',tasks:['Respecter mon objectif de sommeil','Prendre un temps de récupération ou de détente','Effectuer une action de prévention ou de soin','Tenir une routine bien-être régulière']},
+    {name:'Nutrition',label:'Nutrition',color:'#76d6a0',slug:'nutrition',tasks:['Préparer plusieurs repas équilibrés','Maintenir une hydratation régulière','Manger des protéines à mes repas principaux','Prévoir mes repas et limiter l’improvisation']},
+    {name:'Sport',label:'Sport',color:'#78bafa',slug:'sport',tasks:['Réaliser mes séances prévues','Faire une séance de mobilité ou de récupération','Progresser sur un exercice ou une compétence','Respecter l’échauffement et la récupération']},
+    {name:'Discipline',label:'Discipline',color:'#c49bff',slug:'discipline',tasks:['Planifier les priorités de la semaine','Lire ou apprendre plusieurs fois','Limiter le temps d’écran non intentionnel','Terminer les tâches importantes prévues']}
+  ];
+  const defaults=()=>modules.map(m=>({name:m.name,tasks:m.tasks.map((name,i)=>({id:m.name+'-'+i,name}))}));
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let config=defaults();
+  try{
+    const raw=appStorage.getItem(CONFIG_KEY);
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed)){
+        config=modules.map(m=>{
+          const found=parsed.find(x=>x&&x.name===m.name&&Array.isArray(x.tasks));
+          const tasks=(found?found.tasks:[]).filter(t=>t&&typeof t.id==='string'&&typeof t.name==='string').slice(0,4).map(t=>({id:t.id.slice(0,100),name:t.name.slice(0,80)}));
+          return {name:m.name,tasks:found?tasks:defaults().find(x=>x.name===m.name).tasks};
+        });
+      }
+    }
+  }catch(e){config=defaults();}
+  const saveConfig=()=>appStorage.setItem(CONFIG_KEY,JSON.stringify(config));
+  const pad=n=>String(n).padStart(2,'0');
+  const isoWeekKey=()=>{
+    const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+3-((d.getDay()+6)%7));
+    const year=d.getFullYear();const jan4=new Date(year,0,4,12);jan4.setDate(jan4.getDate()-((jan4.getDay()+6)%7));
+    const week=1+Math.round((d-jan4)/604800000);return year+'-W'+pad(week);
+  };
+  const isoWeekMonday=key=>{
+    const m=/^(\d{4})-W(\d{2})$/.exec(key||'');
+    if(!m){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+    const jan4=new Date(Number(m[1]),0,4,12);jan4.setDate(jan4.getDate()-((jan4.getDay()+6)%7)+(Number(m[2])-1)*7);
+    return jan4.getFullYear()+'-'+pad(jan4.getMonth()+1)+'-'+pad(jan4.getDate());
+  };
+  const currentWeek=isoWeekKey();
+  const moduleForTask=id=>config.find(m=>m.tasks.some(t=>t.id===id));
+  const isDone=id=>Array.isArray(entries)&&entries.some(e=>e.weeklyBonus===true&&e.week===currentWeek&&e.task===id);
+  const earnedFor=module=>entries.filter(e=>e.weeklyBonus===true&&e.week===currentWeek&&e.module===module).reduce((n,e)=>n+Math.max(0,Number(e.xp)||0),0);
+  const nav=document.createElement('div');nav.className='quest-subnav';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Période des quêtes');
+  nav.innerHTML='<button type="button" role="tab" aria-selected="true" data-quest-period="daily" class="active">☀️ Quotidienne</button><button type="button" role="tab" aria-selected="false" data-quest-period="weekly">📅 Hebdomadaire</button>';
+  titleRow.insertAdjacentElement('afterend',nav);
+  const weekly=document.createElement('div');weekly.id='weeklyQuestPanel';weekly.hidden=true;nav.insertAdjacentElement('afterend',weekly);
+  let editorOpen=false;
+  function weeklyHtml(){
+    const cards=config.map(m=>{
+      const info=modules.find(x=>x.name===m.name);const done=m.tasks.filter(t=>isDone(t.id)).length;const xp=Math.min(1000,earnedFor(m.name));
+      return `<div class="panel quest-module accent-${info.slug}" data-weekly-module="${esc(m.name)}"><h3>${info.name==='Santé'?'💗':info.name==='Nutrition'?'🥗':info.name==='Sport'?'💪':'🧠'} ${esc(info.label.toUpperCase())} · ${xp.toLocaleString('fr-FR')}/1 000 XP</h3>${m.tasks.map(t=>{
+        const checked=isDone(t.id);const canUndo=checked;
+        return `<div class="quest ${checked?'quest-completed weekly-quest-complete':''}" data-weekly-row="${esc(t.id)}"><div class="questinfo"><div class="questname">${esc(t.name)}</div><div class="questmeta">Quête hebdomadaire · ${checked?'✓ VALIDÉE':'À réaliser cette semaine'}</div></div><span class="xp">+250 XP</span><button type="button" class="action" data-weekly-task="${esc(t.id)}" ${checked||earnedFor(m.name)>=1000?'disabled':''}>${checked?'✓ Validée':'Valider'}</button>${canUndo?`<button type="button" class="action done" data-weekly-undo="${esc(t.id)}" title="Annuler cette validation" aria-label="Annuler : ${esc(t.name)}">↶</button>`:''}</div>`;
+      }).join('')}</div>`;
+    }).join('');
+    return `<div class="weekly-toolbar"><div><strong>Bonus hebdomadaire</strong><p>Jusqu’à 1 000 XP par module · 4 000 XP au total.</p></div><button type="button" class="action" data-weekly-edit-toggle>${editorOpen?'✓ Fermer la personnalisation':'⚙️ Personnaliser les quêtes'}</button></div>${editorOpen?editorHtml():''}<div class="quest-zone weekly-quest-zone">${cards}</div><p class="weekly-footnote">Chaque quête validée rapporte 250 XP. Les validations hebdomadaires n’affectent pas le compteur quotidien. Les bonus se réinitialisent au changement de semaine.</p>`;
+  }
+  function editorHtml(){
+    return `<div class="weekly-editor"><div class="weekly-editor-heading"><div><h3>⚙️ Personnalisation des quêtes hebdomadaires</h3><p>Modifie les intitulés, ajoute ou supprime des quêtes. Maximum : 4 quêtes actives par module, soit 1 000 XP.</p></div><button type="button" class="action" data-weekly-edit-close>Fermer</button></div>${config.map(m=>{
+      const info=modules.find(x=>x.name===m.name);
+      return `<section class="weekly-edit-module accent-${info.slug}"><div class="weekly-edit-module-head"><h4>${info.label}</h4><span>${m.tasks.length}/4 quêtes</span></div>${m.tasks.map((t,i)=>`<div class="weekly-edit-row"><label>Quête ${i+1}<input type="text" maxlength="80" data-weekly-name="${esc(t.id)}" value="${esc(t.name)}" /></label><button type="button" class="action done" data-weekly-remove="${esc(t.id)}" ${isDone(t.id)?'disabled title="Annule la validation avant de supprimer cette quête"':''}>Supprimer</button></div>`).join('')}${m.tasks.length<4?`<button type="button" class="action" data-weekly-add="${esc(m.name)}">＋ Ajouter une quête</button>`:'<p class="weekly-limit-note">Limite de 4 quêtes atteinte.</p>'}</section>`;
+    }).join('')}<div class="weekly-editor-actions"><button type="button" class="action primary" data-weekly-save>💾 Enregistrer les modifications</button><button type="button" class="action done" data-weekly-reset>Réinitialiser les textes</button></div><p class="weekly-editor-status" aria-live="polite">Les XP déjà gagnés sont conservés. Une quête validée ne peut pas être supprimée tant que sa validation n’est pas annulée.</p></div>`;
+  }
+  function renderWeekly(){weekly.innerHTML=weeklyHtml();}
+  function setPeriod(period){
+    const isWeek=period==='weekly';
+    nav.querySelectorAll('[data-quest-period]').forEach(btn=>{const active=btn.dataset.questPeriod===period;btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));});
+    originalChildren.forEach(el=>{el.hidden=isWeek?true:originalHidden.get(el);});weekly.hidden=!isWeek;
+    if(title)title.textContent=isWeek?'📅 QUÊTES HEBDOMADAIRES':originalTitle;
+    if(countLabel)countLabel.hidden=isWeek?true:originalCountHidden;
+  }
+  nav.addEventListener('click',e=>{const btn=e.target.closest('[data-quest-period]');if(btn)setPeriod(btn.dataset.questPeriod);});
+  function showWeeklyXP(row){
+    if(!row)return;const r=row.getBoundingClientRect();const el=document.createElement('div');el.className='floatxp weekly-floatxp';el.textContent='+250 XP';el.style.left=Math.min(window.innerWidth-130,Math.max(10,r.left+Math.min(100,r.width/3)))+'px';el.style.top=Math.max(60,r.top-15)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),1250);
+  }
+  weekly.addEventListener('click',e=>{
+    const editToggle=e.target.closest('[data-weekly-edit-toggle]');
+    if(editToggle){editorOpen=!editorOpen;renderWeekly();setPeriod('weekly');return;}
+    if(e.target.closest('[data-weekly-edit-close]')){editorOpen=false;renderWeekly();setPeriod('weekly');return;}
+    const add=e.target.closest('[data-weekly-add]');
+    if(add){const m=config.find(x=>x.name===add.dataset.weeklyAdd);if(!m||m.tasks.length>=4)return;m.tasks.push({id:'custom-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name:'Nouvelle quête hebdomadaire'});try{saveConfig();}catch(err){alert('Impossible d’enregistrer la personnalisation.');return;}editorOpen=true;renderWeekly();setPeriod('weekly');return;}
+    const remove=e.target.closest('[data-weekly-remove]');
+    if(remove){const id=remove.dataset.weeklyRemove;if(isDone(id)){alert('Annule d’abord la validation de cette quête.');return;}for(const m of config)m.tasks=m.tasks.filter(t=>t.id!==id);try{saveConfig();}catch(err){alert('Impossible d’enregistrer la personnalisation.');return;}editorOpen=true;renderWeekly();setPeriod('weekly');return;}
+    if(e.target.closest('[data-weekly-save]')){
+      const next=config.map(m=>({name:m.name,tasks:m.tasks.map(t=>{const input=Array.from(weekly.querySelectorAll('[data-weekly-name]')).find(x=>x.dataset.weeklyName===t.id);return {...t,name:input?input.value.trim().slice(0,80):t.name};})}));
+      if(next.some(m=>m.tasks.some(t=>!t.name))){alert('Chaque quête doit avoir un intitulé.');return;}
+      config=next;try{saveConfig();}catch(err){alert('Impossible d’enregistrer les modifications.');return;}editorOpen=false;renderWeekly();setPeriod('weekly');return;
+    }
+    if(e.target.closest('[data-weekly-reset]')){if(!confirm('Réinitialiser les intitulés des quêtes hebdomadaires ? Les XP déjà gagnés seront conservés.'))return;config=defaults();try{saveConfig();}catch(err){alert('Impossible de réinitialiser les quêtes.');return;}editorOpen=false;renderWeekly();setPeriod('weekly');return;}
+    const validate=e.target.closest('[data-weekly-task]');const undo=e.target.closest('[data-weekly-undo]');if(!validate&&!undo)return;
+    const taskId=(validate||undo).dataset.weeklyTask || (undo&&undo.dataset.weeklyUndo);if(!taskId)return;
+    const m=moduleForTask(taskId);if(!m)return;
+    const existingIndex=entries.findIndex(x=>x.weeklyBonus===true&&x.week===currentWeek&&x.task===taskId);
+    try{
+      if(validate){if(existingIndex>=0||earnedFor(m.name)+250>1000)return;const task=m.tasks.find(t=>t.id===taskId);if(!task)return;entries.push({uid:'weekly-'+currentWeek+'-'+taskId+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),ts:Date.now(),date:isoWeekMonday(currentWeek),id:900000000+(Date.now()%100000000),module:m.name,name:'Bonus hebdomadaire · '+task.name,xp:250,weeklyBonus:true,week:currentWeek,task:taskId});}
+      else if(undo&&existingIndex>=0){entries.splice(existingIndex,1);}else return;
+      save();renderWeekly();setPeriod('weekly');
+      if(validate){const row=Array.from(weekly.querySelectorAll('[data-weekly-row]')).find(x=>x.dataset.weeklyRow===taskId);if(row){row.classList.add('weekly-quest-just-completed');showWeeklyXP(row);setTimeout(()=>row.classList.remove('weekly-quest-just-completed'),950);}}
+    }catch(err){alert('La quête hebdomadaire n’a pas pu être enregistrée. Tes quêtes quotidiennes restent intactes.');}
+  });
+  let migrated=false;
+  for(const entry of entries){if(entry&&entry.weeklyBonus&&/^\d{4}-W\d{2}$/.test(entry.week||'')){const monday=isoWeekMonday(entry.week);if(entry.date!==monday){entry.date=monday;migrated=true;}}}
+  if(migrated){try{save();}catch(e){}}
+  renderWeekly();setPeriod('daily');
+})();
+</script>
+<script id="rpg-life-cleanup-duplicate-ranks">
+(function(){
+  function clean(){
+    document.querySelectorAll('h1,h2,h3,h4,strong,b,summary').forEach(el=>{
+      const text=(el.textContent||'').replace(/\s+/g,' ').trim().toLocaleLowerCase('fr-FR');
+      if(text==='rangs des quatre voies'){
+        const box=el.closest('.panel,.card,.rpg-panel,.rank-panel,section,article,details')||el.parentElement;
+        if(box&&box!==document.body)box.remove();
+      }
+    });
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const remove=[];
+    while(walker.nextNode()){
+      const n=walker.currentNode;
+      if((n.nodeValue||'').trim()==='>' && n.parentElement && !n.parentElement.closest('script,style,textarea,input')){remove.push(n);}
+    }
+    remove.forEach(n=>n.remove());
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',clean,{once:true});else clean();
+  const observer=new MutationObserver(()=>clean());
+  observer.observe(document.body,{subtree:true,childList:true});
+})();
+</script>
+</body
   ></html
 >
 
